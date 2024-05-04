@@ -23,7 +23,7 @@ data <- list()
 for (i in 1:3) {
   adat_out <- FCI.Utils::generateDataset(adag = adag_out$dagg, N=100000, type = "continuous")
   cur_full_dat <- adat_out$dat
-  data[[i]] <-  cur_full_dat[, sample(1:ncol(cur_full_dat), size = 3)] #generated datasets
+  data[[i]] <-  cur_full_dat[, sample(1:ncol(cur_full_dat), size = sample(1:4, 1)), drop=FALSE] #generated datasets
 }
 
 # run the citests separately
@@ -37,11 +37,14 @@ for (cur_dat in data) {
                                  vars_names = cur_labels,
                                  covs_names = c())
 
-  citestResults <- getAllCITestResults(cur_dat, indepTest, suffStat)
+  citestResults <- getAllCITestResults(cur_dat, indepTest, suffStat, m.max=2)
   citestResultsList[[index]] <- list(citestResults=citestResults, labels=cur_labels)
   index <- index + 1
 }
 
+# Transfer each list(citestResults=citestResults, labels=cur_labels) created locally to the server
+
+# Part of the server
 # create the list of the suffstat
 suffStat <- list()
 suffStat$citestResultsList <- citestResultsList
