@@ -474,9 +474,16 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
                 if(!(z %in% cur_labels)){
                   conditionsforAllVi[i] <- TRUE
                 }
+                else{
+                  indx <- which(cur_labels == x_label)
+                  indy <- which(cur_labels == y_label)
+                  #Sepset is NULL -> undef in paper
+                  if(!(length((sepsetGi[[indx]][[indy]])>0))){
+                    conditionsforAllVi[i] <- TRUE
+                  }
+                }
               }
             }
-
             if(all(unlist(conditionsforAllVi))){
               PossImm[[length(PossImm)+1]] <- c(x_label,z,y_label)
             }
@@ -488,6 +495,7 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
   PossImm <- computePossImm(PossImm) #removes flipped occurencies
   return(PossImm)
 }
+
 
 getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat){
   RemEdges <- list()
