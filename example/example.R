@@ -19,11 +19,12 @@ truePAG <- getTruePAG(adag_out$dagg)
 trueAdjM <- truePAG@amat
 renderAG(trueAdjM)
 
+set.seed(12345)
 data <- list()
 for (i in 1:3) {
   adat_out <- FCI.Utils::generateDataset(adag = adag_out$dagg, N=100000, type = "continuous")
   cur_full_dat <- adat_out$dat
-  data[[i]] <-  cur_full_dat[, sample(1:ncol(cur_full_dat), size = sample(1:4, 1)), drop=FALSE] #generated datasets
+  data[[i]] <-  cur_full_dat[, sample(1:ncol(cur_full_dat), size = 3), drop=FALSE] #generated datasets
 }
 
 # run the citests separately
