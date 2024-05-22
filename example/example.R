@@ -6,7 +6,7 @@ library(rje)
 library(graph)
 library(doFuture)
 library(gtools)
-library(rIOD)
+library(IOD)
 
 n_cores <- 8
 plan("multicore", workers = n_cores, gc=TRUE)
