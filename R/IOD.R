@@ -1,5 +1,5 @@
 #' @export IOD
-IOD <- function(suffStat, alpha) {
+IOD <- function(suffStat, alpha, validation_method ="standard") {
 
   initSkeletonOutput <- initialSkeleton(suffStat, alpha)
   G <- initSkeletonOutput[[1]]
@@ -58,7 +58,7 @@ IOD <- function(suffStat, alpha) {
     # to update sepset accordingly.
     G_PAG <- unique(G_PAG)
 
-    violation_List <- validatePossPags(G_PAG, sepsetList, suffStat, IP)
+    violation_List <- validatePossPags(G_PAG, sepsetList, suffStat, IP, validation_method)
     G_PAG <- G_PAG[!violation_List]
 
     return(G_PAG)

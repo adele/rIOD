@@ -579,8 +579,30 @@ applyRulesOnHt <- function(listAllHt){
   return(G_PAG)
 }
 
+checkIfInvariancesfromGiAreInPAG <- function(listGi, G_PAG){
+  tracker <- c()
+  apag <- getAncestralMatrix(G_PAG)
+  for (gi in listGi) {
+    agi <- getAncestralMatrix(gi)
+    relevant_vars <- colnames(agi)
+    for(var_col in  relevant_vars){
+      for(var_row in  relevant_vars){
+        if(var_col != var_row){
+          value_subset <- agi[var_col,var_row]
+          if (!(apag[var_col, var_row] == value_subset) && !(apag[var_col, var_row] == 2 || value_subset == 2)) {
+            tracker <- c(tracker, FALSE)
+          } else {
+            tracker <- c(tracker, TRUE)
+          }
+        }
+      }
+    }
+  }
+  return(all(tracker))
+}
+
 #validatePossPags <- function(G_PAG, G_PAG_List, sepsetList, suffStat, IP){
-validatePossPags <- function(G_PAG, sepsetList, suffStat, IP){
+validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, validation_method){
   violates_list <- c()
   for (J in G_PAG) {
 
@@ -639,12 +661,15 @@ validatePossPags <- function(G_PAG, sepsetList, suffStat, IP){
               msep <- isMSeparated(J, X, Y, subset,
                                    verbose=verbose)
               violates <- violates || msep # because we want the m-connection
+
+              if(validation_method == "consistence" & !violates){
+                if(!checkIfInvariancesfromGiAreInPAG(listGi, J)){
+                  violates <- TRUE
+                }
+              }
             }
           }
         }
-        # if(!violates){
-        #   G_PAG_List[[length(G_PAG_List)+1]] <- J
-        # }
       }
     }
     violates_list <- c(violates_list, violates)
