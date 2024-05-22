@@ -19,7 +19,7 @@ truePAG <- getTruePAG(adag_out$dagg)
 trueAdjM <- truePAG@amat
 renderAG(trueAdjM)
 
-#set.seed(12345)
+set.seed(12345)
 data <- list()
 for (i in 1:3) {
   adat_out <- FCI.Utils::generateDataset(adag = adag_out$dagg, N=100000, type = "continuous")
@@ -48,7 +48,7 @@ for (cur_dat in data) {
 # Part of the server
 # create the list of the suffstat
 suffStat <- list()
-suffStat$citestResultsList <- citestResultsList
+suffStat$citestResultsList <- citestResultsList #this is correct
 
 # call IOD.
 alpha <- 0.05
@@ -60,3 +60,7 @@ lapply(iod_out$Gi_PAG_list, renderAG)
 
 iod_out$G_PAG_List # list of possible merged PAGs
 lapply(iod_out$G_PAG_List, renderAG)
+
+#function to check if the true pag is inside the pag list
+containsTheTrueGraph(trueAdjM = trueAdjM, iod_out$G_PAG_List)
+
