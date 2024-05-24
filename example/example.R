@@ -38,10 +38,14 @@ for (cur_dat in data) {
                                  vars_names = cur_labels,
                                  covs_names = c())
 
-  citestResults <- getAllCITestResults(cur_dat, indepTest, suffStat, m.max=2)
+  citestResults <- getAllCITestResults(cur_dat, indepTest, suffStat,
+                                       m.max=2, saveFiles = TRUE,
+                                       fileid = sprintf("%04d", index),
+                                       citestResults_folder="./citests/")
   citestResultsList[[index]] <- list(citestResults=citestResults, labels=cur_labels)
   index <- index + 1
 }
+
 
 # Transfer each list(citestResults=citestResults, labels=cur_labels) created locally to the server
 
