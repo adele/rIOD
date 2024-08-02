@@ -56,18 +56,18 @@ iodCITest <- function(x, y, S, suffStat) {
 }
 
 # Initialize G with edges between all nodes
-initG <-function(suffStat){
+initG <-function(suffStat) {
   labelsG <- collectLabelsG(suffStat)
-  print(labelsG)
+  #print(labelsG)
   p <- length(labelsG)
-  print(p)
+  #print(p)
   G <- matrix(1, nrow = p, ncol = p)
   G <- G - diag(p)
   colnames(G) <- rownames(G) <- labelsG
   return(G)
 }
 
-collectLabelsG <- function(suffStat){
+collectLabelsG <- function(suffStat) {
   n_datasets <- length(suffStat$citestResultsList)
   lists <- suffStat$citestResultsList
   labelsG <- list()
@@ -78,7 +78,7 @@ collectLabelsG <- function(suffStat){
 }
 
 #adjust G with information from skeleton alg
-remEdgesFromG <- function(sepset, G, cur_labels){
+remEdgesFromG <- function(sepset, G, cur_labels) {
   n_sepset <- length(sepset)
   for (i in 1:n_sepset){
     for (j in 1:n_sepset){
@@ -93,7 +93,7 @@ remEdgesFromG <- function(sepset, G, cur_labels){
   return(G)
 }
 
-adjPairsOneOccurrence <- function(G){
+adjPairsOneOccurrence <- function(G) {
   labelsG <- colnames(G)
   neighbours <- list()
   G_copy <- G
@@ -115,7 +115,7 @@ adjPairsOneOccurrence <- function(G){
   return(neighbours)
 }
 
-setOfPossSep <- function(G, p, pdsep.max= Inf, m.max = Inf){
+setOfPossSep <- function(G, p, pdsep.max= Inf, m.max = Inf) {
   labelsG <- colnames(G)
   possSepG <- lapply(seq_len(p), function(.) vector("list", p))
   #this outputs all PossSep(x,G) which are the nodes where a path exists from x
@@ -211,7 +211,7 @@ minDiscrPath <- function(pag, a,b,c, verbose = FALSE){
   NA
 } ## {minDiscrPath}
 
-updateList <- function(path, set, old.list){
+updateList <- function(path, set, old.list) {
   ## Purpose: update the list of all paths in the iterative functions
   ## minDiscrPath, minUncovCircPath and minUncovPdPath
   ## ----------------------------------------------------------------------
@@ -225,12 +225,11 @@ updateList <- function(path, set, old.list){
 
 #Note: There is no sepset for G, so we create both graphs
 #maybe document what we put in the sepset of G
-newRule4 <- function(pag, p) {
+newRule4 <- function(pag, p, verbose=FALSE) {
   applied <- FALSE
   #orig_pag_objs <- list(pag, sepset)
   #out <- list(orig_pag_objs)
   out_pags <- list(pag)
-  verbose <- TRUE
   seq_p <- seq_len(p)
 
   # #initialize sepset
@@ -318,7 +317,7 @@ newRule4 <- function(pag, p) {
   return(out_pags)
 }
 
-computePossImm <- function(PossImm){
+computePossImm <- function(PossImm) {
   new_PossImm <- list()
   for(triplet in PossImm){
 
@@ -333,7 +332,8 @@ computePossImm <- function(PossImm){
   return(new_PossImm)
 }
 
-colliderOrientation <- function(amat,G, sepset){
+
+colliderOrientation <- function(amat, G, sepset, verbose=FALSE) {
 
   labels_Gi <- colnames(amat)
 
@@ -352,11 +352,15 @@ colliderOrientation <- function(amat,G, sepset){
         if (!(middle_node %in% cur_sep)) {
           #used Coding for type amat.pag from pcalg page 12
           if (G[labels_Gi[start_node],  labels_Gi[middle_node]] != 0) { #AND EDGE EXISTS IN G,
-            cat("(1) Adding an arrowhead using dataset with variables ", paste0(labels_Gi, collapse=","), "\n")
+            if (verbose) {
+              cat("(1) Adding an arrowhead using dataset with variables ", paste0(labels_Gi, collapse=","), "\n")
+            }
             G[labels_Gi[start_node],  labels_Gi[middle_node]] <- 2 # start_node o--> middle_node
           }
           if (G[labels_Gi[end_node],  labels_Gi[middle_node]] != 0) { #AND EDGE EXISTS IN G
-            cat("(2) Adding an arrowhead using dataset with variables ", paste0(labels_Gi, collapse=","), "\n")
+            if (verbose) {
+              cat("(2) Adding an arrowhead using dataset with variables ", paste0(labels_Gi, collapse=","), "\n")
+            }
             G[labels_Gi[end_node],  labels_Gi[middle_node]] <- 2
           }
         }
@@ -366,6 +370,7 @@ colliderOrientation <- function(amat,G, sepset){
   return(G)
 }
 
+
 getSubsets <- function(nodes) {
   return(powerSet(nodes))
 }
@@ -374,16 +379,14 @@ getSubsets <- function(nodes) {
 # in each dataset using the iodCITest.
 # We can run this only requiring the suffStat of the iodCITest
 # cur_labels does not need to be defined in the input
-initialSkeleton <- function(suffStat, alpha){
+initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
   G <- initG(suffStat)
   n_datasets <- length(suffStat$citestResultsList)
   listGi <- list()
-  IP <- list()
-  index <- 1
   sepsetList <- list()
-  listGiRaw <- list()
+  #listGiRaw <- list()
 
-  for (i in 1:n_datasets) {
+  skeleton_list <- foreach (i = 1:n_datasets, .verbose=verbose) %dofuture% {
     cur_labels <- suffStat$citestResultsList[[i]]$labels
     suffStat$cur_labels <- cur_labels
     #skeleton
@@ -391,7 +394,7 @@ initialSkeleton <- function(suffStat, alpha){
                          indepTest = iodCITest,
                          method = "stable",
                          alpha = alpha, labels = cur_labels,
-                         verbose = TRUE, NAdelete = FALSE)
+                         verbose = verbose, NAdelete = FALSE)
     # skeleton removes edges from independent nodes in Gi
     # orients Colliders of order 0
 
@@ -399,9 +402,11 @@ initialSkeleton <- function(suffStat, alpha){
     sepset <- fixSepsetList(sepset)
 
     amat.Gi <-  as(skel.fit@graph, "matrix")
-    #renderAG(amat.Gi, add_index = TRUE)
+    # renderAG(amat.Gi, add_index = TRUE)
+    # formatSepset(sepset)
 
-    G <- remEdgesFromG(sepset, G, cur_labels) # here the edges that are removed
+    # We don't need to remove here, as it is going to be removed later...
+    # G <- remEdgesFromG(sepset, G, cur_labels) # here the edges that are removed
     # before in Gi are removed from G
 
     p <- length(cur_labels)
@@ -410,10 +415,26 @@ initialSkeleton <- function(suffStat, alpha){
                       pMax = skel.fit@pMax,
                       m.max = Inf, pdsep.max = Inf,
                       NAdelete = FALSE,
-                      verbose = TRUE)
+                      verbose = verbose)
     sepset <- pdsepRes$sepset # sepset from the final skeleton
-    sepsetList[[i]] <- sepset
+    # formatSepset(sepset)
+    sepset_i <- sepset
 
+    G_i <- pdsepRes$G #pdsepRes$G is the final skeleton of Gi
+
+    return(list(sepset_i=sepset_i, G_i=G_i))
+  }
+
+  sepsetList <- lapply(skeleton_list, function(x) { x$sepset_i })
+  # lapply(sepsetList, formatSepset)
+  listGi <- lapply(skeleton_list, function(x) { x$G_i })
+  # lapply(listGi, renderAG)
+
+  IP <- list()
+  index <- 1
+  for (i in 1:length(sepsetList)) {
+    sepset <- sepsetList[[i]]
+    cur_labels <- suffStat$citestResultsList[[i]]$labels
     # removing from G the edges removed from Gi after calling pdsep
     G <- remEdgesFromG(sepset, G, cur_labels)
 
@@ -421,9 +442,8 @@ initialSkeleton <- function(suffStat, alpha){
     n_sepset <- length(sepset)
     for (k in 1:(n_sepset-1)) {
       for (j in (k+1):n_sepset) {
-        sepset <- sepsetList[[i]]
-        #if the Sepset is NULL there is no Seperator and the edge is not removed
-        if(is.null(sepset[[k]][[j]])){
+        #if the Sepset is NULL there is no Separator and the edge is not removed
+        if (is.null(sepset[[k]][[j]])) {
           labelX <- as.character(cur_labels[k])
           labelY <- as.character(cur_labels[j])
           IP[index] <- list(c(labelX, labelY, cur_labels))
@@ -432,16 +452,362 @@ initialSkeleton <- function(suffStat, alpha){
       }
     }
 
-    listGi[[i]] <- pdsepRes$G
-    #pdsepRes$G is the final skeleton of Gi
-    G <- colliderOrientation(amat.Gi, G, sepset)
+    if (procedure == "original") {
+      G <- colliderOrientation(listGi[[i]], G, sepset)
+    }
   }
 
-  listGi <- lapply(1:length(listGi), function(x) {
-    udag2pag(listGi[[x]], rules = rep(TRUE, 10),
-             orientCollider = TRUE, sepset = sepsetList[[x]]) })
 
-  return(list(G, IP, sepsetList, listGi))
+  pairGiSepsetList <- mapply(list, listGi=listGi, sepsetList=sepsetList, SIMPLIFY=F)
+
+  listGi <- future.apply::future_lapply(pairGiSepsetList,
+                                        function(x) { udag2pag(x$listGi, rules = rep(TRUE, 10),
+                                                               orientCollider = TRUE, sepset = x$sepsetList) })
+
+  # lapply(listGi, renderAG)
+
+  # get the PAG for Gi
+  # transfer all colliders (and maybe all non-colliders) with order to G
+  nCK1List <- NA
+  nNCKList <- NA
+  possImmfromTriplets <-list()
+  if (procedure == "orderedcolls"|| procedure == "orderedtriplets") {
+
+    # TODO: check if we need to save the oriented Gi
+    for (i in 1:length(listGi)) {
+      hasViol <- hasViolation(listGi[[i]], sepsetList[[i]])
+      if (hasViol) {
+        listGi[[i]] <- (listGi[[i]] != 0) * 1
+      }
+    }
+
+    G_out <- tripletsWithOrderOrientation(listGi, G, procedure, verbose=verbose, sepsetList = sepsetList)
+    G <- G_out$G
+    nCK1List <- G_out$nCK1
+    nNCKList <- G_out$nNCK
+    sepsetList <- G_out$sepsetList
+    possImmfromTriplets <- G_out$possImmfromTriplets
+  }
+
+  return(list(G=G, IP=IP, sepsetList=sepsetList, listGi=listGi, nCK1List=nCK1List, nNCKList=nNCKList, possImmfromTriplets= possImmfromTriplets))
+}
+
+# Here we either include colliders with order and non colliders with order or only
+# colliders with order
+tripletsWithOrderOrientation <- function(listGi, G, procedure, verbose=FALSE, sepsetList) {
+  nCK1_list = list() # number of colliders with order >= 1
+  nNCK_list = list() # number of non-colliders with order >= 0
+  possImmfromTriplets <- list()
+
+  mec_list <- foreach (i = 1:length(listGi), .verbose=verbose) %dofuture% {
+    amat.pag <- listGi[[i]]
+    mag_out <- getMAG(amat.pag)
+    magg <- mag_out$magg
+    amat.mag <- mag_out$amat.mag
+    mec <- MAGtoMEC(amat.mag, verbose=verbose)
+  }
+
+  conflicting_pairs <- findConflictingPairs(mec_list, listGi) # NOTE: This should be 1)
+  #The first var is the collider
+
+  if(length(conflicting_pairs) > 0){
+    updateSepsetList <- updateSepsetList(conflicting_pairs = conflicting_pairs, sepsetList = sepsetList, mec_list = mec_list) # NOTE: This should be 2)
+    sepsetList <- updateSepsetList$sepsetList
+    possImmfromTriplets <- updateSepsetList$possImmfromTriplets
+  }
+
+  for (i in 1:length(listGi)) {
+    mec <- mec_list[[i]]
+    nCK1_list[[i]] <- NA
+
+    # TODO Jul 19: check if this is correct:
+    if (length(mec$CK) > 0) {
+      listColliders <- mec$CK[, c("X", "Z", "Y", "ord")] # colliders with order
+      number_rows <- dim(listColliders)[[1]]
+
+      # TODO Jul 19: # this is the number of colliders of order higher than 0.
+      nCK1_list[[i]] = length(which(listColliders$ord > 0))
+      vars_Gi <- colnames(listGi[[i]])
+      for (j in 1:number_rows){
+        cur_collider <- listColliders[j,]
+        cur_indices <- unlist(cur_collider)[1:3]
+        vars_collider <- vars_Gi[cur_indices]
+
+        X0 <- mec$CK[j, "X0"]
+        Y0 <- mec$CK[j, "Y0"]
+
+        # this if is probably not necessary anymore but it is not harming and save
+        if(length(sepsetList[[i]]) >= X0 & length(sepsetList[[i]][[X0]]) >= Y0){
+          correspondingSepset <- sepsetList[[i]][[X0]][[Y0]]
+        }else{
+          correspondingSepset <- NULL
+        }
+
+        if(!is.null(correspondingSepset)){
+          G <- orientCwo(vars_collider, G, listGi = listGi)
+        }
+      }
+    }
+  }
+
+  if (procedure =="orderedtriplets") {
+
+    for (i in 1:length(listGi)) {
+      mec <- mec_list[[i]]
+      nNCK_list[[i]] <- NA
+
+      # TODO Jul 19: check if this is correct:
+      if (length(mec$NCK) > 0) {
+        listnonColliders <- mec$NCK[, c("X", "Z", "Y")] # non-colliders with order
+        number_rows <- dim(listnonColliders)[[1]]
+
+        # TODO Jul 19: # this is the number of colliders of order higher than 0.
+        nNCK_list[[i]] = number_rows
+        for (j in 1:number_rows){
+          cur_ncollider <- listnonColliders[j,]
+          vars_Gi <- colnames(listGi[[i]])
+          cur_indices <- unlist(cur_ncollider)
+          vars_noncollider <- vars_Gi[cur_indices]
+          X0 <- mec$NCK[j, "X0"]
+          Y0 <- mec$NCK[j, "Y0"]
+
+          # this if is probably not necessary anymore but it is not harming and save
+          if(length(sepsetList[[i]]) >= X0 & length(sepsetList[[i]][[X0]]) >= Y0){
+            correspondingSepset <- sepsetList[[i]][[X0]][[Y0]]
+          }else{
+            correspondingSepset <- NULL
+          }
+
+          if(!is.null(correspondingSepset)){
+            G <- orientnonColls(vars_noncollider, G, listGi[[i]], listGi)
+          }
+        }
+      }
+    }
+  }
+
+  return(list(G=G, nCK1=nCK1_list, nNCK=nNCK_list, sepsetList = sepsetList, possImmfromTriplets = possImmfromTriplets))
+}
+
+
+updateSepsetList <- function(conflicting_pairs = conflicting_pairs, sepsetList = sepsetList, mec_list = mec_list){
+
+  possImmfromTriplets <- list()
+
+  for(i in 1:length(conflicting_pairs)){
+
+    cur_edges <- conflicting_pairs[[i]]$edges
+    cur_datasets_having_zero <- conflicting_pairs[[i]]$datasets_having_zero
+    cur_datasets_having_one <- conflicting_pairs[[i]]$datasets_having_one
+
+    # the datasets having the definite non ancestors
+    for(index_zero in cur_datasets_having_zero){
+
+      cur_mec <- mec_list[[index_zero]]
+      index_collider <- which(colnames(cur_mec$skel) == cur_edges[[1]])
+
+      if(any(cur_mec$CK[,"Z"] == index_collider)){ # There is any CK having this Collider
+        mecs_of_interest <- cur_mec$CK[cur_mec$CK[,"Z"]== index_collider,]
+        number_rows <- dim(mecs_of_interest)[[1]]
+
+        for (j in 1:number_rows){
+          X0 <- cur_mec$CK[[j,"X0"]]
+          Y0 <-  cur_mec$CK[[j,"Y0"]]
+          sepsetList[[index_zero]][[X0]][Y0] <- list(NULL)
+          sepsetList[[index_zero]][[Y0]][X0] <- list(NULL)
+          col_names <- colnames(cur_mec$skel)
+
+          possImmfromTriplets[[length(possImmfromTriplets)+1]] <- col_names[unlist(mecs_of_interest[j,c("X", "Z", "Y")])]
+        }
+
+      }
+
+    }
+
+    # the datasets having the definite ancestors
+    for(index_one in cur_datasets_having_one){
+      cur_mec <- mec_list[[index_one]]
+      index_noncollider <- which(colnames(cur_mec$skel) == cur_edges[[1]])
+
+      if(any(cur_mec$CK[,"Z"] == index_noncollider)){ # There is any CK having this Collider
+        mecs_of_interest <- cur_mec$NCK[cur_mec$NCK[,"Z"]== index_noncollider,]
+        number_rows <- dim(mecs_of_interest)[[1]]
+
+        for (j in 1:number_rows){
+          X0 <- cur_mec$NCK[[j,"X0"]]
+          Y0 <-  cur_mec$NCK[[j,"Y0"]]
+          sepsetList[[index_zero]][[X0]][Y0] <- NULL
+          sepsetList[[index_zero]][[Y0]][X0] <- NULL
+          col_names <- colnames(cur_mec$skel)
+
+          possImmfromTriplets[[length(possImmfromTriplets)+1]] <- col_names[unlist(mecs_of_interest[j,c("X", "Z", "Y")])]
+        }
+
+      }
+
+    }
+
+  }
+
+  return(list(sepsetList = sepsetList, possImmfromTriplets = possImmfromTriplets))
+}
+
+findConflictingPairs <- function(mec_list, listGi){
+  conflicts <-list()
+
+  listGi_ancestral <- lapply(listGi, getAncestralMatrix)
+
+  #collider is first
+  alledges <- getalledges(mec_list)
+
+  for (edge in alledges) {
+    list_orientations <- list()
+    for(Gi in listGi_ancestral){
+      #  = 0 implies that i is a definite non-ancestor of j
+      #  = 1 implies that i is a definite ancestor of j
+      #  = 2 implies that i is a possible ancestor of j
+      # only check if Gi contains the edges
+
+      if(edge[[1]] %in% colnames(Gi) && edge[[2]] %in% colnames(Gi)) {
+        list_orientations[length(list_orientations)+1] <- Gi[edge[[1]],edge[[2]]]
+        #i <- i+1
+      }
+    }
+    if(0 %in% list_orientations && 1 %in% list_orientations) {
+
+      datasets_having_zero <- which(list_orientations == 0)
+      datasets_having_one <- which(list_orientations == 1)
+
+
+      conflicts[[length(conflicts)+1]] <- list(edges = edge,
+                                               datasets_having_zero = datasets_having_zero,
+                                               datasets_having_one = datasets_having_one)
+    }
+  }
+  return(conflicts)
+}
+
+
+getalledges <- function(mec_list){
+
+  cur_mec <- list()
+  edges <- list()
+
+  for(i in 1:length(mec_list)){
+    cur_mec <- mec_list[[i]]
+    coln<- colnames(cur_mec$skel)
+
+    number_rows <- dim(cur_mec$CK)[[1]]
+    if(length(number_rows) > 0 && number_rows > 0){
+      for (j in 1:length(number_rows)) {
+        collZX <- coln[unlist(cur_mec$CK[j,c("Z","X")])]
+        collZY <- coln[unlist(cur_mec$CK[j,c("Z","Y")])]
+        edges[[length(edges)+1]] <- collZX
+        edges[[length(edges)+1]] <- collZY
+      }
+    }
+
+    number_rows <- dim(cur_mec$NCK)[[1]]
+    if(length(number_rows) > 0 && number_rows > 0){
+      for (j in 1:length(number_rows)) {
+        collZX <- coln[unlist(cur_mec$NCK[j,c("Z","X")])]
+        collZY <- coln[unlist(cur_mec$NCK[j,c("Z","Y")])]
+        edges[[length(edges)+1]] <- collZX
+        edges[[length(edges)+1]] <- collZY
+      }
+    }
+  }
+  return(unique(edges))
+}
+
+# use ancestrality matrix here
+# True if there are contradictory orientations
+# list_orientations: an empty list or a list with one element: 1, for testing
+# if edge[[2]] can be a definite ancestor of edge[[1]], or 0, for testing
+# if the edge[[2]]  can be a definite non-ancestor oc edge[[1]].
+checkForContradictoryOrientations <- function(edge, listGi, list_orientations=list()) {
+  i <- length(list_orientations) + 1
+
+  listGi_ancestral <- lapply(listGi, getAncestralMatrix)
+  for(Gi in listGi_ancestral){
+    #  = 0 implies that i is a definite non-ancestor of j
+    #  = 1 implies that i is a definite ancestor of j
+    #  = 2 implies that i is a possible ancestor of j
+    # only check if Gi contains the edges
+    if(edge[[1]] %in% colnames(Gi) && edge[[2]] %in% colnames(Gi)) {
+      list_orientations[[i]] <- Gi[edge[[1]],edge[[2]]]
+      i <- i+1
+    }
+  }
+
+  if(0 %in% list_orientations && 1 %in% list_orientations) {
+    return(TRUE)
+  }
+
+  return(FALSE)
+}
+
+orientCwo <- function(vars_collider, G, Gi, listGi){
+  #if(!checkForContradictoryOrientations(edge = list(vars_collider[[2]], vars_collider[[1]]), listGi = listGi)) {
+  if(G[vars_collider[[1]],  vars_collider[[2]]] != 0) {
+    G[vars_collider[[1]], vars_collider[[2]]] <- 2 # start_node o--> middle_node
+  }
+  #}
+  #if(!checkForContradictoryOrientations(edge =  list(vars_collider[[2]], vars_collider[[3]]), listGi = listGi)) {
+  if (G[vars_collider[[3]],  vars_collider[[2]]] != 0) { #AND EDGE EXISTS IN G
+    G[vars_collider[[3]],  vars_collider[[2]]] <- 2
+  }
+  #}
+  return(G)
+}
+
+orientnonColls <- function(vars_noncollider, G, Gi, listGi) {
+  # transfer the tails if they exist
+  #if(!checkForContradictoryOrientations(edge = list(vars_noncollider[[1]],  vars_noncollider[[2]]), listGi = listGi)) {
+  if(Gi[vars_noncollider[[1]],  vars_noncollider[[2]]] == 3 && (G[vars_noncollider[[1]], vars_noncollider[[2]]] != 0)) { #check if Gi has this edge and if the edge exists in G...
+    G[vars_noncollider[[1]], vars_noncollider[[2]]] <- 3 # start_node *--- middle_node
+  }
+  #}
+
+  #if(!checkForContradictoryOrientations(edge = list(vars_noncollider[[3]],  vars_noncollider[[2]]), listGi = listGi)) {
+  if (Gi[vars_noncollider[[3]],  vars_noncollider[[2]]] == 3 && (G[vars_noncollider[[3]], vars_noncollider[[2]]] != 0)) { #check if Gi has this edge
+    G[vars_noncollider[[3]],  vars_noncollider[[2]]] <- 3 # middle_node --* end_node
+  }
+  #}
+
+  # Here, all arrowheads that are not conflicting across the Gi's
+  # have been already transferred to G.
+  # It is possible, therefore, that a ncwo has only circles in the middle node in Gi
+  # but in G, it has an arrowhead on it.
+  # In this case, we have to complete the other edge mark as a tail, thus
+  # preventing such a triplet to be considered a possible immorality later on.
+  if (Gi[vars_noncollider[[1]],  vars_noncollider[[2]]] == 1 && Gi[vars_noncollider[[3]],  vars_noncollider[[2]]] == 1) {
+    # There is circle-circle definite non-collider in Gi
+
+    # Triplet in G has an arrowhead on the first edge of the triplet
+    if (G[vars_noncollider[[1]],  vars_noncollider[[2]]] == 2 && G[vars_noncollider[[3]],  vars_noncollider[[2]]] == 1) {
+      # This would imply Gi[vars_noncollider[[3]],  vars_noncollider[[2]]] == 3
+      # Checking if such definite ancestrallity would violate orientations in the others G_i
+      if(!checkForContradictoryOrientations(edge = list(vars_noncollider[[3]],  vars_noncollider[[2]]),
+                                            listGi = listGi, list_orientations = list(1))) {
+        # Transfering such definite ancestrallity to G:
+        G[vars_noncollider[[3]],  vars_noncollider[[2]]] <- 3
+      }
+    }
+
+    # Triplet in G has an arrowhead on the second edge of the triplet
+    if (G[vars_noncollider[[3]],  vars_noncollider[[2]]] == 2 && G[vars_noncollider[[1]],  vars_noncollider[[2]]] == 1) {
+      # This would imply Gi[vars_noncollider[[1]],  vars_noncollider[[2]]] == 3
+      # Checking if such definite ancestrallity would violate orientations in the others G_i
+      if(!checkForContradictoryOrientations(edge = list(vars_noncollider[[1]],  vars_noncollider[[2]]),
+                                            listGi = listGi, list_orientations = list(1))) {
+        # Transfering such definite ancestrallity to G:
+        G[vars_noncollider[[1]],  vars_noncollider[[2]]] <- 3
+      }
+    }
+  }
+
+  return(G)
 }
 
 getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
@@ -452,9 +818,9 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
       for (y in adj_z) {
         if (x != y) {
           #Can X,Z,Y be made an immorality? -> if H[X,Y]=0 (unshielded, symmetric)
-          if (H[x,y] == 0) {
-
-            conditionsforAllVi<- list()
+          if (H[x,y] == 0 &&
+              H[x,z] != 3 && H[y,z] != 3) {
+            conditionsforAllVi <- list()
             for (i in 1:n_datasets) {
 
               conditionsforAllVi[i] <- FALSE
@@ -466,26 +832,33 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
               x_label <- labelsG[x]
               y_label <- labelsG[y]
 
-              #check if Sepset is undefined,i.e. X,Y are not both observed in Gi
+              #check if Sepset is undefined, i.e. X,Y are not both observed in Gi
               if(!(x_label %in% cur_labels) | !(y_label %in% cur_labels)){
                 conditionsforAllVi[i] <- TRUE
               }else{
                 # check if Z is not in Vi
                 if(!(z %in% cur_labels)){
-                  conditionsforAllVi[i] <- TRUE
+                  conditionsforAllVi[i] <- TRUE # NOTE: this captures some conflicts of triplets that are both cwo and ncw across different Gi's
                 }
                 else{
                   indx <- which(cur_labels == x_label)
                   indy <- which(cur_labels == y_label)
                   #Sepset is NULL -> undef in paper
-                  if(!(length((sepsetGi[[indx]][[indy]])>0))){
+                  if(length(sepsetGi[[indx]]) >= indy){
+                    lengthlist <- length(sepsetGi[[indx]][[indy]])
+                  }else{
+                    lengthlist <- 0
+                  }
+                  if(!(lengthlist > 0)) {
                     conditionsforAllVi[i] <- TRUE
                   }
                 }
               }
             }
-            if(all(unlist(conditionsforAllVi))){
-              PossImm[[length(PossImm)+1]] <- c(x_label,z,y_label)
+            if(all(unlist(conditionsforAllVi))) {
+              if(H[x_label,z] != 2 || H[y_label,z] != 2) { # this should prevent getting possImm that are inside of H
+                PossImm[[length(PossImm)+1]] <- c(x_label,z,y_label)
+              }
             }
           }
         }
@@ -496,8 +869,7 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
   return(PossImm)
 }
 
-
-getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat){
+getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat) {
   RemEdges <- list()
   for (pair in existingEdges) {
     X <- pair[1]
@@ -601,80 +973,145 @@ checkIfInvariancesfromGiAreInPAG <- function(listGi, G_PAG){
   return(all(tracker))
 }
 
-#validatePossPags <- function(G_PAG, G_PAG_List, sepsetList, suffStat, IP){
-validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, validation_method){
-  violates_list <- c()
-  for (J in G_PAG) {
+hasOnlyValidMAGs <- function(pagAdjM, verbose = FALSE) {
 
-    #(i)
-
-    violates <- FALSE
-    # Here we check whether the PAG is valid by checking whether
-    # the canonical MAG is ancestral
-    validPAG <- isValidPAG(J, verbose=FALSE) # returns a boolean
-    if (! validPAG) {
-      violates <- TRUE
+  # Checking whether there are cycles or almost cycles
+  isAGret <- tryCatch({
+    amag <- getMAG(pagAdjM)
+    if (!is.null(amag$amat.mag)) {
+      ug_mag <- (amag$amat.mag == 3 & t(amag$amat.mag == 3)) * 1
+      bg_mag <- (amag$amat.mag == 2 & t(amag$amat.mag == 2)) * 1
+      dg_mag <- (amag$amat.mag == 2 & t(amag$amat.mag == 3)) * 1
+      mag_ggm <- ggm::makeMG(dg_mag, ug_mag, bg_mag)
+      ggm::isAG(mag_ggm)
+    } else {
+      FALSE
     }
+  },
+  error=function(cond) {
+    print(cond)
+    return(FALSE)
+  },
+  warning=function(cond) {
+    print(cond)
+    return(FALSE)
+  })
 
-    #(ii)
+  if (!isAGret) {
+    if (verbose) {
+      cat(paste("MAG is not ancestral.\n"))
+    }
+    return(FALSE)
+  } else {
+    # Here we check whether a MAG in the PAG is maximal
+    # We do this by getting the PAG P of a MAG in pagAdjM and comparing
+    # whether P and pagAdjM have the same skeleton.
+    # We do not check if P and pagAdjM are identical (with the same orientations)
+    # because the returning PAGs may be more informative than the ones recovered
+    # only using conditional independencies.
 
-    if(!violates) {
+    recPAG <- getTruePAG(amag$magg, verbose = verbose)
+    # renderAG(recPAG@amat)
+    recPAG_skel <- (recPAG@amat[colnames(pagAdjM), colnames(pagAdjM)] != 0) * 1
+    pagAdjM_skel <- (pagAdjM != 0) * 1
+    if (any(recPAG_skel - pagAdjM_skel != 0)) {
+      if (verbose) {
+        cat(paste("MAG is not maximal.\n"))
+      }
+      return(FALSE)
+    }
+    return(TRUE)
+  }
+}
 
-      verbose = TRUE
 
-      for (n in 1:length(sepsetList)) {
-        for(i in 1:length(sepsetList[n])) {
-          for(j in 1:length(sepsetList[[n]][[i]])) {
-            labels <- suffStat$citestResultsList[[n]]$labels
-            Sij <- sepsetList[[n]][[i]][[j]]
+#validatePossPags <- function(G_PAG, G_PAG_List, sepsetList, suffStat, IP){
+validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, method, listGi, verbose=FALSE){
+  violates_list <-
+    foreach (J = G_PAG, .verbose=verbose) %dofuture% {
+      #for (J in G_PAG) {
+      violates <- FALSE
+      #(ii)
+      if (!violates) {
+        for (n in 1:length(sepsetList)) {
+          for (i in 1:length(sepsetList[[n]])) {
+            for (j in 1:length(sepsetList[[n]][[i]])) {
+              labels <- suffStat$citestResultsList[[n]]$labels
 
-            if(!is.null(Sij) & i!=j){
-              xname <- labels[i]
-              yname <- labels[j]
-              snames <- labels[unlist(Sij)]
-
-              if (verbose) {
-                cat(paste("Checking if {", paste0(labels[unlist(Sij)], collapse={","}),
-                          "} m-separates", labels[i], "and", labels[j],"\n"))
+              if(length(sepsetList[[n]][[i]]) >= j){
+                Sij <- sepsetList[[n]][[i]][[j]]
               }
-              msep <- isMSeparated(J, xname, yname, snames, verbose=verbose)
-              violates <- violates || !msep # because we want the m-separation
+              else{
+                Sij <- NULL
+              }
+
+              if(!is.null(Sij) & i!=j){
+                xname <- labels[i]
+                yname <- labels[j]
+                snames <- labels[unlist(Sij)]
+
+                if (verbose) {
+                  cat(paste("Checking if {", paste0(labels[unlist(Sij)], collapse={","}),
+                            "} m-separates", labels[i], "and", labels[j],"\n"))
+                }
+                msep <- isMSeparated(J, xname, yname, snames, verbose=verbose)
+                violates <- violates || !msep # because we want the m-separation
+
+              }
             }
           }
         }
-      }
 
-      if(!violates) {
-        #(iii)
-        # IP saves the labels
-        for(xyS in IP) {
+        if(!violates) {
+          #(iii)
+          # IP saves the labels
+          for(xyS in IP) {
 
-          X <- xyS[1]
-          Y <- xyS[2]
-          Vi <- xyS[3:length(xyS)]
+            X <- xyS[1]
+            Y <- xyS[2]
+            Vi <- xyS[3:length(xyS)]
 
-          nodes <- setdiff(Vi, list(X,Y))
-          subsets <- getSubsets(nodes) # this returns list of all possible V'
+            nodes <- setdiff(Vi, list(X,Y))
+            subsets <- getSubsets(nodes) # this returns list of all possible V'
 
-          for(subset in subsets){
-            if(!violates){
-              msep <- isMSeparated(J, X, Y, subset,
-                                   verbose=verbose)
-              violates <- violates || msep # because we want the m-connection
-
-              if(validation_method == "consistence" & !violates){
-                if(!checkIfInvariancesfromGiAreInPAG(listGi, J)){
-                  violates <- TRUE
+            for(subset in subsets){
+              if(!violates){
+                msep <- isMSeparated(J, X, Y, subset,
+                                     verbose=verbose)
+                violates <- violates || msep # because we want the m-connection
+                if(method == "consistence" & !violates){
+                  if(!checkIfInvariancesfromGiAreInPAG(listGi, J)){
+                    violates <- TRUE
+                  }
                 }
               }
             }
           }
         }
+
+        #(i)
+        if (!violates) {
+          # Here we check whether the PAG is valid by checking whether
+          # the canonical MAG is ancestral
+          validPAG <- hasOnlyValidMAGs(J) # returns a boolean
+          if (! validPAG) {
+            violates <- TRUE
+          }
+        }
       }
+      violates
     }
-    violates_list <- c(violates_list, violates)
-  }
   #return(G_PAG_List)
-  return(violates_list)
+  return(unlist(violates_list))
 }
 
+
+dagittyCIOracle2 <- function(x, y, S, suffStat) {
+  g <- suffStat$g
+  labels <- suffStat$labels
+  if (dagitty::dseparated(g, labels[x], labels[y], labels[S])) {
+    return(1)
+  } else {
+    return(0)
+  }
+}
