@@ -1,3 +1,31 @@
+#' @title Learning PAGs from multiple datasets with overlapping variables by using the IOD
+#'
+#' @description This package implements the Integration of overlapping datasets algorithm by Tillman et. al. (2011) and
+#' also offers 2 additional procedures which both improve the performance.
+#'
+#' The Algorithm can be used to obtain a list of PAGs from datasets with overlapping variables.
+#' The PAGs in the list all reflect the observed data.
+#' The IOD assumes faithfulness, so if this assumption does not hold, the results can be bad containing PAGs with wrong (in)dependencies or an empty list.
+#'
+#' @param suffStat list of lists each including the nth CI-test results and the labels of the dataset
+#' @param alpha significance level on which the combined statistics in the IOD reject H0 (independence of variables). The default value is 0.05.
+#' @param method the default value is "standard". If "standard" is choosen, it won't have an additional check. If "consistence" is choosen,
+#' an additional validation check is done, which will exclude any PAGs from the list, if they violate marginal consistency. This could be helpful, when dealing with unfaithfulness.
+#' @param procedure there are 3 procedures you can choose from: "original", "orderedcolls" and "orderedtriplets".
+#' "original" performs the regular IOD. "orderedcolls" includes colliders of any order, while "orderedtriplets" considers triplets of any order.
+#' "orderedcolls" or "orderedtriplets" can have an output in unfaithful cases where the  "original" version could not find any, because in cases where
+#' datasets have conflicting orientations we consider both.
+#' @param verbose the default value is FALSE. If it is set to TRUE, there is additional output in the console about the steps and calculations that are done.
+
+#' @return Returns a list with the following elements:
+#' \describe{
+#' \item{G_PAG_List}{The output list of PAGs given by adjacency matrices which reflect the given statistics (\code{G_PAG_List}).}
+#' \item{Gi_PAG_list}{A list of the fully oriented input-datasets (\code{Gi_PAG_list}), which were used to train the PAGs.}
+#' \item{len_before}{The length of the output list of PAGs before these were validated (\code{len_before}).}
+#' \item{nCK1}{The number of colliders of an order higher than 1 (\code{nCK1}) taken into account.}
+#' \item{nNCK1}{The number of non-colliders of any order (\code{nNCK1})taken into account.}
+#'}
+
 #' @export IOD
 IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original", verbose=FALSE) {
 
