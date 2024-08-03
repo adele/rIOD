@@ -8,37 +8,8 @@ The IOD learns equivalence classes of acyclic models
 with latent and selection variables from multiple datasets with overlapping variables. 
 It outputs a list of PAGs including the true PAG, if the combined statistics are faithful. 
 
-### Reference Manual
-
-Documentation of the methods provided by ... can be found at: ...
-
-### Example
-
-An example is provided at ...
-
-### Installation
-
-First, install R (>= 3.5.0) and the following packages:
-```r
-install.packages(c("FCI.Utils", "pcalg", "igraph", "RBGL", "graph", "doFuture", "gtools", "MXM", "pscl", "DOT", "rsvg", "doSNOW"), dependencies=TRUE)
-```
-You can download the latest tar.gz file with the source code of the IOD R package, available at <https://github.com/adele/IOD/releases/latest>, and install it with the following command, where `path_to_file` represents the full path and file name of the tar.gz file:
-
-``` r
-install.packages(path_to_file, repos=NULL, type="source", dependencies=TRUE)
-```
-
-Or you can install the development version directly from GitHub. Make sure you have the devtools R package installed. If not, install it with `install.packages("devtools", dependencies=TRUE)`.
-
-``` r
-devtools::install_github("adele/IOD", dependencies=TRUE)
-```
-
-Note: if you are asked to update packages, then press "a" for all.
-
-All releases are available at <https://github.com/adele/IOD/releases/>. If you want a specific version of the IOD R package, for example, v1.0, you can install it directly from the URL:
-
-``` r
-install.packages("https://github.com/adele/IOD/releases/download/v1.0/FCI.Utils_1.0.tar.gz", repos=NULL, method="libcurl", dependencies=TRUE)
-```
-
+### Package structure 
+The algorithm is implemented in the files IOD.R and IOD_Helper.R. In Simulations_Helper.R, several functions were created to test the 
+algorithm and generate simulations. The code has been extensively tested, resulting in numerous files where the results were evaluated, 
+leading to subsequent corrections and optimizations of the algorithm. To reproduce the test results from the thesis, the Reproduce_Thesis_results 
+folder was created, which describes what was used and how to make the results reproducible.
