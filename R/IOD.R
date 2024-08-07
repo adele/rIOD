@@ -40,7 +40,6 @@
 #'   cur_full_dat <- adat_out$dat
 #'   data[[i]] <-  cur_full_dat[, sample(1:ncol(cur_full_dat), size = 3), drop=FALSE] #generated datasets
 #'}
-
 #' run the citests separately
 #' citestResultsList <- list()
 #' index <- 1
@@ -76,7 +75,7 @@
 #' iod_out$G_PAG_List # list of possible merged PAGs
 #' lapply(iod_out$G_PAG_List, renderAG)
 #'
-#'
+#' @importFrom foreach foreach
 #' @export IOD
 IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original", verbose=FALSE) {
 
