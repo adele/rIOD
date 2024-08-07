@@ -1,14 +1,3 @@
-# PS: never transfer/combine data, only statistics
-# Idea:
-#   1) compute p-values for each dataset and save in a citestResults
-#   2) write a iodCITest that combines p-values based on the citestResults of each dataset
-
-#' @param suffStat a list with the following entries:
-#'      cur_labels: these are the names of the variables in the dataset to
-#'                  which the test is being applied.
-#'      citestResultsList: This is a list where each entry is also a list
-#'                         containing both citestResults and the corresponding
-#'                         labels for each dataset.
 iodCITest <- function(x, y, S, suffStat) {
   xname <- suffStat$cur_labels[x]
   yname <- suffStat$cur_labels[y]
