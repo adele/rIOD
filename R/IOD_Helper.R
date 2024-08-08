@@ -385,7 +385,7 @@ getSubsets <- function(nodes) {
 # We can run this only requiring the suffStat of the iodCITest
 # cur_labels does not need to be defined in the input
 #' @noRd
-#' @importFrom pcalc pdsep skeleton
+#' @importFrom pcalg pdsep skeleton
 #' @importFrom future.apply future_lapply
 #' @importFrom FCI.Utils hasViolation
 initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
@@ -996,7 +996,7 @@ checkIfInvariancesfromGiAreInPAG <- function(listGi, G_PAG){
 
 #' @importFrom FCI.Utils getTruePAG getMAG
 #' @importFrom ggm isAG makeMG
-#' #' @noRd
+#' @noRd
 hasOnlyValidMAGs <- function(pagAdjM, verbose = FALSE) {
 
   # Checking whether there are cycles or almost cycles
