@@ -36,9 +36,11 @@
 #' # create datasets or organize yours like this:
 #' data <- list()
 #' for (i in 1:3) {
-#'   adat_out <- FCI.Utils::generateDataset(adag = adag_out$dagg, N=100000, type = "continuous")
+#'   adat_out <- FCI.Utils::generateDataset(adag = adag_out$dagg,
+#'                                          N=100000, type = "continuous")
 #'   cur_full_dat <- adat_out$dat
-#'   data[[i]] <-  cur_full_dat[, sample(1:ncol(cur_full_dat), size = 3), drop=FALSE] #generated datasets
+#'   data[[i]] <-  cur_full_dat[,
+#'       sample(1:ncol(cur_full_dat), size = 3), drop=FALSE] #generated datasets
 #'}
 #' # run the citests separately
 #' citestResultsList <- list()
@@ -51,33 +53,40 @@
 #'                                 vars_names = cur_labels,
 #'                                  covs_names = c())
 #'
-#'   citestResults <- FCI.Utils::getAllCITestResults(cur_dat, indepTest, suffStat,
+#'   citestResults <- FCI.Utils::getAllCITestResults(
+#'                                        cur_dat, indepTest, suffStat,
 #'                                        m.max=2, saveFiles = TRUE,
 #'                                        fileid = sprintf("%04d", index),
 #'                                        citestResults_folder="./citests/")
-#'   citestResultsList[[index]] <- list(citestResults=citestResults, labels=cur_labels)
+#'   citestResultsList[[index]] <- list(citestResults=citestResults,
+#'                                      labels=cur_labels)
 #'   index <- index + 1
 #' }
 #'
-
+#'
 #' # create the list of the suffstat
 #' suffStat <- list()
 #' suffStat$citestResultsList <- citestResultsList #this is correct
-
+#'
 #' # call IOD.
 #' alpha <- 0.05
 #' iod_out <- IOD(suffStat, alpha)
-
+#'
 #' # show the output.
 #' iod_out$Gi_PAG_list # list of PAGs generated from each dataset
-#' lapply(iod_out$Gi_PAG_list, renderAG)
-
-#' iod_out$G_PAG_List # list of possible merged PAGs
-#' lapply(iod_out$G_PAG_List, renderAG)
+#' lapply(iod_out$Gi_PAG_list, FCI.Utils::renderAG)
 #'
+#' iod_out$G_PAG_List # list of possible merged PAGs
+#'
+#' # This is going to render the graphs in the viewer tab
+#' lapply(iod_out$G_PAG_List, FCI.Utils::renderAG)
+#'
+#' @import doFuture
 #' @importFrom foreach foreach
+#' @importFrom rje powerSet
 #' @export IOD
 IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original", verbose=FALSE) {
+  E = NULL
 
   initSkeletonOutput <- initialSkeleton(suffStat, alpha, procedure=procedure, verbose=verbose)
   G <- initSkeletonOutput$G

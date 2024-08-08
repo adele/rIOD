@@ -1,7 +1,9 @@
-#' @importFrom FCI.Utils extractValidCITestResults
+#' @importFrom FCI.Utils extractValidCITestResults getSepString
 #' @importFrom stats pchisq
 #' @noRd
 iodCITest <- function(x, y, S, suffStat) {
+  X = Y = S = NULL
+
   xname <- suffStat$cur_labels[x]
   yname <- suffStat$cur_labels[y]
   snames <- suffStat$cur_labels[S]
@@ -112,6 +114,7 @@ adjPairsOneOccurrence <- function(G) {
   return(neighbours)
 }
 
+#' @importFrom pcalg qreach
 #' @importFrom FCI.Utils getAdjNodes
 #' @noRd
 setOfPossSep <- function(G, p, pdsep.max= Inf, m.max = Inf) {
@@ -155,7 +158,7 @@ induceSubgraph <- function(G, edges){
   return(H)
 }
 
-#' @noRd
+#' @importFrom utils combn
 all_combinations <- function(lst) {
   result <- list(list()) # also empty set
   for (i in 1:length(lst)) {
@@ -385,9 +388,11 @@ getSubsets <- function(nodes) {
 # We can run this only requiring the suffStat of the iodCITest
 # cur_labels does not need to be defined in the input
 #' @noRd
+#' @import doFuture
 #' @importFrom pcalg pdsep skeleton
+#' @importFrom methods as
 #' @importFrom future.apply future_lapply
-#' @importFrom FCI.Utils hasViolation
+#' @importFrom FCI.Utils hasViolation fixSepsetList
 initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
   G <- initG(suffStat)
   n_datasets <- length(suffStat$citestResultsList)
@@ -1051,6 +1056,8 @@ hasOnlyValidMAGs <- function(pagAdjM, verbose = FALSE) {
 #' @importFrom FCI.Utils isMSeparated
 #' @noRd
 validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, method, listGi, verbose=FALSE){
+  J = NULL
+
   violates_list <-
     foreach (J = G_PAG, .verbose=verbose) %dofuture% {
       #for (J in G_PAG) {
