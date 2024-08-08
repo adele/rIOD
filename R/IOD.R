@@ -29,29 +29,29 @@
 #'#'
 #' @examples
 #' # I generate fake data from the true PAG below
-#' adag_out <- getDAG("pdsep_g")
-#' truePAG <- getTruePAG(adag_out$dagg)
+#' adag_out <- FCI.Utils::getDAG("pdsep_g")
+#' truePAG <- FCI.Utils::getTruePAG(adag_out$dagg)
 #' trueAdjM <- truePAG@amat
 #'
-#' create datasets or organize yours like this:
+#' # create datasets or organize yours like this:
 #' data <- list()
 #' for (i in 1:3) {
 #'   adat_out <- FCI.Utils::generateDataset(adag = adag_out$dagg, N=100000, type = "continuous")
 #'   cur_full_dat <- adat_out$dat
 #'   data[[i]] <-  cur_full_dat[, sample(1:ncol(cur_full_dat), size = 3), drop=FALSE] #generated datasets
 #'}
-#' run the citests separately
+#' # run the citests separately
 #' citestResultsList <- list()
 #' index <- 1
 #' for (cur_dat in data) {
 #'  #this is how to run CI Tests for a dataset cur_dat
 #'  cur_labels <- colnames(cur_dat)
 #'  indepTest <- mixedCITest
-#'  suffStat <- getMixedCISuffStat(dat = cur_dat,
+#'  suffStat <- FCI.Utils::getMixedCISuffStat(dat = cur_dat,
 #'                                 vars_names = cur_labels,
 #'                                  covs_names = c())
 #'
-#'   citestResults <- getAllCITestResults(cur_dat, indepTest, suffStat,
+#'   citestResults <- FCI.Utils::getAllCITestResults(cur_dat, indepTest, suffStat,
 #'                                        m.max=2, saveFiles = TRUE,
 #'                                        fileid = sprintf("%04d", index),
 #'                                        citestResults_folder="./citests/")
@@ -60,7 +60,7 @@
 #' }
 #'
 
-#'  # create the list of the suffstat
+#' # create the list of the suffstat
 #' suffStat <- list()
 #' suffStat$citestResultsList <- citestResultsList #this is correct
 
