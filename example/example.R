@@ -7,6 +7,7 @@ library(graph)
 library(doFuture)
 library(gtools)
 library(rIOD)
+library(matrixcalc)
 
 n_cores <- 8
 plan("multicore", workers = n_cores, gc=TRUE)

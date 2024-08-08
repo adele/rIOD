@@ -41,4 +41,3 @@ All releases are available at <https://github.com/adele/IOD/releases/>. If you w
 ``` r
 install.packages("https://github.com/adele/IOD/releases/download/v1.0/FCI.Utils_1.0.tar.gz", repos=NULL, method="libcurl", dependencies=TRUE)
 ```
-
