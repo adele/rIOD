@@ -66,7 +66,7 @@ index <- 1
 for (cur_dat in data) {
  #this is how to run CI Tests for a dataset cur_dat
  cur_labels <- colnames(cur_dat)
- indepTest <- mixedCITest
+ indepTest <- FCI.Utils::mixedCITest
  suffStat <- FCI.Utils::getMixedCISuffStat(dat = cur_dat,
                                 vars_names = cur_labels,
                                  covs_names = c())
