@@ -1,0 +1,61 @@
+\documentclass{article}
+
+\title{my\_vignette}
+\author{Dein Name}
+\date{\today}
+
+\usepackage{Sweave}  % oder \usepackage{knitr} wenn du knitr verwenden willst
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+% Vignette-Metadaten
+\VignetteIndexEntry{my_vignette}
+\VignetteEngine{knitr::knitr}
+\VignetteEncoding{UTF-8}
+
+\section{Introduction}
+The question of why things are the way they are, or what consequences our actions and decisions hold, often occupies our minds.
+By understanding the cause-and-effect relationships between different events, we can predict the effect of interventions, and understand the mechanisms behind various phenomena.
+Causal discovery is the process of learning causal relationships of variables $V=\{V_1,...,V_N\}$ from observational data.
+In data collection, it is common for some variables to be unobservable or impractical to observe together, resulting in multiple datasets with partially overlapping variables. Many algorithms in this realm only accept a single dataset. Pooling data can lead to various problems, which is why we will take a look at a different approach, the IOD \citep{tillman2011learning}.
+\\
+\\
+The IOD algorithm learns a list of PAGs from multiple datasets having overlapping variables.
+The input of the IOD algorithm originally takes the datasets and does conditional independence tests, which are combined afterwards, leading to more robustness.
+Instead, we designed the IOD so that the results of the conditional independence tests conducted separately on the datasets are used as input to achieve a privacy-preserving solution. Since there is no need to transfer data, the sources can transmit the test results, which are then combined in the algorithm as in the original.
+The datasets are only partially overlapping, which means some variables are not observed together and therefore there are no conditional independence tests results and the relation of these variables is unclear.
+The IOD learns edges from the observed independencies, and afterwards all combinations of reasonable orientations regarding the missing test results are considered as a possible PAG, which is why in the end the output is a list of PAGs.
+\\
+\\
+The original algorithm is not as efficient as it could be if triplets of order are included. Triplets of order are detectable orientations in a PAG, which are mostly not considered by the original version.
+\\
+\\
+To get started, we show how to get the input of the algorithm and how it works.
+\\
+\\
+\section{Preserving Privacy}
+Assume that data is collected from various sources. In the graph, we see the true underlying model.
+\begin{Schunk}
+\begin{Sinput}
+<<>>=
+library(FCI.Utils)
+
+adag_out <- getDAG("pdsep_g")
+truePAG <- getTruePAG(adag_out$dagg)
+trueAdjM <- truePAG@amat
+# This is the underlying model
+renderAG(trueAdjM)
+@
+\end{Sinput}
+\begin{Soutput}
+## Ausgabe des R-Codes wird hier angezeigt
+\end{Soutput}
+\end{Schunk}
+
+\section{Schluss}
+Hier kannst du den Schlussabschnitt deiner Vignette schreiben.
+
+\end{document}
