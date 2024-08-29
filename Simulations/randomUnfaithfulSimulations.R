@@ -1,9 +1,7 @@
 rm(list=ls())
 source("IOD.R")
 source("IOD_Helper.R")
-source("Testfunctions.R")
 source("SimulationHelper.R")
-source("graphics.R")
 
 ##################################################
 # TO INSTALL THE PACKAGES BELOW
@@ -46,17 +44,15 @@ if (file.exists(pagsfile)) {
   truePAGs <- pags_subsets$pags
   subsetsList <- pags_subsets$subsets
 
-  #lapply(pags_subsets$pags[1:10], renderAG)
-
   save(truePAGs, subsetsList, file=paste0(output_folder, n_tests, "randomPAGs.RData"))
 }
 
 load(pagsfile)
 
-NvecList <- list(c(10000, 10000))
+NvecList <- list(10000, 10000)
 for (NVec in NvecList) {
   datasets_suffstat_file <- paste0(output_folder,
-                                   paste0("datasets_suffstats_N", NVec[1], ".RData"))
+                                   paste0("datasets_suffstats_N", NVec, ".RData"))
   if (!file.exists(datasets_suffstat_file)) {
     datasets_suffstats <- generateDatasetsSuffStats(truePAGs, subsetsList,
                                                     NVec, data_type="continuous")
@@ -86,7 +82,7 @@ for (NVec in NvecList) {
     graphs <- truePAGs
     getStatistics(graphs, results_files, output_folder, fileid = fileid)
   }
-  # else {
-  #   load(results_file)
-  # }
+   else {
+     load(results_file)
+   }
 }

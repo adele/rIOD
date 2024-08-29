@@ -26,10 +26,8 @@ library(stringr)
 library(doFuture)
 library(future.apply)
 n_cores <- 8
-# plan("multisession", workers = n_cores)
-plan("multicore", workers = n_cores)
-# plan("cluster", workers = n_cores)
 
+plan("multicore", workers = n_cores)
 
 output_folder <- "./ResultsOracleRandomGraphs/"
 if (!is.null(output_folder) && !file.exists(output_folder)) {
