@@ -62,7 +62,7 @@ for (NVec in NvecList) {
   }
   results_file <- paste0(output_folder, "results_N", NVec[1], ".RData")
   if (!file.exists(results_file)) {
-    fileid = paste0("randomPAG_N", NVec[1])
+    fileid = paste0("randomPAG_N", NVec)
     results_filenames <- list.files(pattern = paste0("^", fileid, "_*"), output_folder, full.names = FALSE)
 
     processed_ids <- as.numeric(sapply(results_filenames,

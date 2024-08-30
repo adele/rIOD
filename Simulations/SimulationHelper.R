@@ -333,7 +333,7 @@ getStatistics <- function(graphs, results_files, output_folder=NULL, fileid=NULL
   results <- c()
   i <- 1
 
-  for (cur_file in results_files[1:length(results_files)]) { # the first one contains the graphs and subsets
+  for (cur_file in results_files[1:length(results_files)]) {
     load(cur_file)
 
     truePag <- graphs[[i]]

@@ -1,7 +1,4 @@
 rm(list=ls())
-
-source("IOD.R")
-source("IOD_Helper.R")
 source("Simulations/SimulationHelper.R")
 
 ##################################################
