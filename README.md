@@ -1,4 +1,4 @@
-## Implementation of the IOD algorithm
+## A privacy-preserving implementation in R of the IOD algorithm
 
 ### Overview
 
