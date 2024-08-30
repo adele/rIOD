@@ -30,7 +30,7 @@ Use the following commands to build and run the application:
 `docker-compose up`
 
 * Run client or server only:  
-`docker-compuse up client`  
+`docker-compose up client`  
 `docker-compose up server`
 
 * The client can be accessed via `localhost:8081` on the host machine.  
