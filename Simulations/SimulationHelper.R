@@ -414,3 +414,47 @@ dagittyCIOracle2 <- function(x, y, S, suffStat) {
     return(0)
   }
 }
+
+allPAGsincludeAllInvariancesFromGis <- function(listGi, listPags){
+  tracker <- list()
+  i <- 1
+  for (pag in listPags) {
+    for (gi in listGi) {
+      apag <- getAncestralMatrix(pag)
+      agi <- getAncestralMatrix(gi)
+      relevant_vars <- colnames(agi)
+      for (var_col in  relevant_vars) {
+        for (var_row in  relevant_vars) {
+          if (var_col != var_row) {
+            value_subset <- agi[var_col,var_row] # relation in Gi
+            if (!(apag[var_col,var_row] == value_subset) && ## the relations in G and Gi do not match
+                value_subset != 2) { ## and it is not due to an undetermination (circle) in Gi
+              tracker[[i]] <- list(pag,gi)
+              i <- i+1
+            }
+          }
+        }
+      }
+    }
+  }
+  return(unique(tracker))
+}
+
+containsTheTrueGraph <- function(trueAdjM, paglist) {
+  is_in_list <- FALSE
+  for (adj_matrix in paglist) {
+    new_order <- colnames(adj_matrix)
+    trueAdjM <- trueAdjM[new_order, new_order]
+    if (all(adj_matrix == trueAdjM)) {
+      is_in_list <- TRUE
+      break
+    }
+  }
+  if(is_in_list) {
+    print("The List of PAGs includes the true graph")
+    return(TRUE)
+  } else {
+    print("The List of PAGs DOESN'T include the true graph")
+    return(FALSE)
+  }
+}

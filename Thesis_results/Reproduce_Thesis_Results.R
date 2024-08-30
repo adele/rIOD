@@ -184,7 +184,7 @@ summary_len_orig_ncwo <- cut(unlist(results$ncwo.lenbef)- unlist(results$orig.le
 data <- table(summary_len_orig_ncwo)
 labels_vec <- c("(-1015,-200]", "(-200,-100]", "(-100,-1]", "(-1,0]")
 pdf("len_ncwo_org.pdf")
-rotate_x(data,labels_vec,22, ylim = c(0, 50))
+rotate_x(data,labels_vec,22, ylim = c(0, 40))
 dev.off()
 
 summary_len_ncwo_cwo <- cut(unlist(results$ncwo.lenbef)- unlist(results$cwo.lenbef), breaks=c(-1015,-200, -100,-1, 0))
@@ -192,7 +192,7 @@ data <- table(summary_len_ncwo_cwo)
 labels_vec <- c("(-1015,-200]", "(-200,-100]", "(-100,-1]", "(-1,0]")# sort(unique(summary_len_ncwo_cwo))
 table(summary_len_ncwo_cwo)
 pdf("len_ncwo_cwo.pdf")
-rotate_x(data,labels_vec,22, ylim = c(0, 50))
+rotate_x(data,labels_vec,22, ylim = c(0, 40))
 dev.off()
 
 #Inverstigate why org and cwo obtain the same lists before when a discriminating path is in the subset and colliders can be identified
@@ -358,22 +358,25 @@ which(unlist(res$cwo.lenbef) - unlist(res$orig.lenbef) > 0) #  4 33 58 65
 
 # Histograms and tables (Appendix)
 summary_len_orig_cwo <- cut(unlist(res$cwo.lenbef) - unlist(res$orig.lenbef), breaks=c(-300,-200, -100, -1,0, 248))
-table(summary_len_orig_cwo)
+data <- table(summary_len_orig_cwo)
+labels_vec <- sort(unique(summary_len_orig_cwo))
 pdf("len_org_cwo.pdf")
-plot(summary_len_orig_cwo,ylim=c(0, 70))
+rotate_x(data,labels_vec,22, ylim = c(0, 70))
 dev.off()
 
-
 summary_len_orig_ncwo <- cut(unlist(res$ncwo.lenbef) - unlist(res$orig.lenbef), breaks=c(-560, -200,-100, -1,0, 5))
-table(summary_len_orig_ncwo)
+data <- table(summary_len_orig_ncwo)
+labels_vec <- sort(unique(summary_len_orig_ncwo))
 pdf("len_ncwo_org.pdf")
-plot(summary_len_orig_ncwo,  ylim=c(0, 50))
+rotate_x(data,labels_vec,22, ylim = c(0, 50))
+
 dev.off()
 
 summary_len <- cut(unlist(res$ncwo.lenbef) - unlist(res$cwo.lenbef), breaks=c(-370,-200, -100, -1, 0))
-table(summary_len)
+data <- table(summary_len)
+labels_vec <- sort(unique(summary_len))
 pdf("len_ncwo_cwo.pdf")
-plot(summary_len,  ylim=c(0, 50))
+rotate_x(data,labels_vec,22, ylim = c(0, 50))
 dev.off()
 
 table(unlist(res$cwo.lenbef) - unlist(res$orig.lenbef))

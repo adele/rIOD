@@ -1,5 +1,5 @@
 rm(list=ls())
-source("Simulations/SimulationHelper.R")
+#source("Simulations/SimulationHelper.R")
 
 ##################################################
 # TO INSTALL THE PACKAGES BELOW
@@ -16,6 +16,8 @@ library(doFuture)
 library(gtools)
 library(dagitty)
 library(stringr)
+#install
+library(rIOD)
 
 ##################################################
 
@@ -57,12 +59,15 @@ toProcessed_ids <- 1:n_tests
 if (length(processed_ids) > 0) {
   toProcessed_ids <- toProcessed_ids[-processed_ids]
 }
+procedeIODWithGraphs(truePAGs, subsetsList, output_folder, fileid=fileid)
+
 procedeIODWithGraphs(truePAGs[toProcessed_ids], subsetsList[toProcessed_ids], output_folder, fileid=fileid)
 
 results_file <- paste0(output_folder, "results.RData")
 if (!file.exists(results_file)) {
   results_files <- list.files(pattern = paste0("^", fileid, "_*"), output_folder, full.names = TRUE)
-  getStatistics(results_files[2:101], output_folder)
+  graphs <- truePAGs
+  getStatistics(graphs, results_files, output_folder, fileid = fileid)
 } else {
   load(results_file)
 }
