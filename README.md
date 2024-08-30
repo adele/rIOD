@@ -1,4 +1,4 @@
-## Implementation of the IOD algorithm
+## A privacy-preserving implementation in R of the IOD algorithm
 
 ### Overview
 
@@ -31,13 +31,13 @@ install.packages(path_to_file, repos=NULL, type="source", dependencies=TRUE)
 Or you can install the development version directly from GitHub. Make sure you have the devtools R package installed. If not, install it with `install.packages("devtools", dependencies=TRUE)`.
 
 ``` r
-devtools::install_github("adele/IOD", dependencies=TRUE)
+devtools::install_github("adele/rIOD", dependencies=TRUE)
 ```
 
 Note: if you are asked to update packages, then press "a" for all.
 
-All releases are available at <https://github.com/adele/IOD/releases/>. If you want a specific version of the IOD R package, for example, v1.0, you can install it directly from the URL:
+All releases are available at <https://github.com/adele/rIOD/releases/>. If you want a specific version of the IOD R package, for example, v1.0, you can install it directly from the URL:
 
 ``` r
-install.packages("https://github.com/adele/IOD/releases/download/v1.0/FCI.Utils_1.0.tar.gz", repos=NULL, method="libcurl", dependencies=TRUE)
+install.packages("https://github.com/adele/rIOD/releases/download/v1.0/rIOD_1.0.tar.gz", repos=NULL, method="libcurl", dependencies=TRUE)
 ```
