@@ -1,9 +1,5 @@
 # This file exists to recreate the results of the thesis and to guide through the files in a compact way.
 
-#import
-source("IOD.R")
-source("IOD_Helper.R")
-source("Simulations/SimulationHelper.R")
 ##################################################
 #install.packages(c("MXM", "pscl", "DOT", "rsvg"))
 #install.packages("doSNOW")
@@ -17,6 +13,8 @@ library(graph)
 library(doFuture)
 library(gtools)
 library(dagitty)
+library(rIOD)
+source("Simulations/SimulationHelper.R")
 ##################################################
 
 library(doFuture)
@@ -29,9 +27,7 @@ load("~/IOD_Rpackage/Thesis_results/256graphs.RData")
 
 #Used in the improvements_cwo
 trueAdjM <- graphs[[29]]
-# This graph is actually from the tests in Chapter 4.2
 renderAG(trueAdjM)
-#true.sepset <- getPAGImpliedSepset(trueAdjM, citype = "all.pairs")
 true.sepset <- getPAGImpliedSepset(trueAdjM) #citype = "missing.edge"
 formatSepset(true.sepset)
 labels <- colnames(trueAdjM)
@@ -51,8 +47,8 @@ iod_out$len_before
 length(listPags)
 
 
-lapply(listPags, renderAG)
-lapply(listGi, renderAG)
+#lapply(listPags, renderAG)
+#lapply(listGi, renderAG)
 
 containsTheTrueGraph(trueAdjM, listPags)
 
@@ -70,7 +66,6 @@ length(listPags_cwo)
 lapply(listPags_cwo, renderAG)
 
 containsTheTrueGraph(trueAdjM, listPags_cwo)
-
 
 
 iod_out_ncwo <- IOD(suffStat, alpha, procedure = "orderedtriples")
@@ -271,7 +266,7 @@ ind_ncwo <- which(unlist(results$ncow.margIncons)>0) #4 8 12 33 58
 # 12 is not a marginal violation. we detected 12 because detetecting marginal consistency violations is hard, and we did not check it completely correct
 # 12 is not actually a violation
 
-#compare shd for fdr
+#### Metrics in general: compare shd for fdr#####
 min_org <- unlist(lapply(lapply(results$shd_org, unlist),min))
 min_cwo <- unlist(lapply(lapply(results$shd_cwo, unlist), min))
 min_ncwo <- unlist(lapply(lapply(results$shd_ncwo, unlist), min))
@@ -284,6 +279,22 @@ min_cwo - min_org
 min_ncwo - min_org
 
 #these are the 4 cases were we changed the IOD regarding the conflicting edges
+
+#the average of the min, and the average of those that have an output list
+mean(min_org[min_org< 1000])
+
+mean(min_cwo[min_cwo< 1000])
+min_cwo <- min_cwo[-c(4,8,12,33,58)]
+mean(min_cwo[min_cwo< 1000])
+
+mean(min_ncwo[min_ncwo< 1000])
+min_ncwo <- min_ncwo[-c(4,8,12,33,58)]
+mean(min_ncwo[min_ncwo< 1000])
+
+#all shd
+pdf("SHD.pdf")
+rotate_x(table(min_org[min_org< 1000]), c(0,2:11), 22, ylim=c(0,25))
+dev.off()
 
 #
 
@@ -299,6 +310,29 @@ avg_ncwo[which(is.na(avg_ncwo))] <- 0
 avg_cwo - avg_org
 avg_ncwo - avg_org
 
+getMeanSHDStats <- function(list_shd,list_fdr, list_for){
+  mean_shd_list <- list()
+  mean_for_list <- list()
+  mean_fdr_list <- list()
+  for(i in 1:length(list_shd)){
+    if(length(list_shd[[i]]) > 0){
+      shd <- unlist(lapply(lapply(list_shd[i], unlist),min))
+      index <- which(list_shd[[i]] == shd)
+      # there can be multiple min shd
+      for_val <- mean(unlist(list_for[[i]])[index])
+      fdr_val <- mean(unlist(list_fdr[[i]])[index])
+
+      mean_shd_list[i] <- shd
+      mean_for_list[i] <- for_val
+      mean_fdr_list[i] <- fdr_val
+    }
+  }
+  return(list(shdMean = mean(unlist(mean_shd_list)), forMean = mean(unlist(mean_for_list)), fdrMean= mean(unlist(mean_fdr_list))))
+}
+
+getMeanSHDStats(results$shd_org, results$posneg_org_fdr, results$posneg_org_for)
+getMeanSHDStats(results$shd_cwo, results$posneg_cwo_fdr, results$posneg_cwo_for)
+getMeanSHDStats(results$shd_ncwo, results$posneg_ncwo_fdr, results$posneg_ncwo_for)
 #
 
 max_org <- unlist(lapply(lapply(results$shd_org, unlist),max))
@@ -322,7 +356,8 @@ posneg_org_for <- unlist(lapply(results$posneg_org_for, function(x) ifelse(lengt
 posneg_cwo_for <- unlist(lapply(results$posneg_cwo_for, function(x) ifelse(length(x) > 0, min(unlist(x)), NA)))
 posneg_ncwo_for <-unlist(lapply(results$posneg_ncwo_for, function(x) ifelse(length(x) > 0, min(unlist(x)), NA)))
 
-
+# this function checks if there are any differencies in the lists
+# If so, the indices are returned
 compare_fdr_for <-  function(list1, list2){
   index <- list()
   for(i in 1:length(list1)){

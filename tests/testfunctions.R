@@ -1,4 +1,4 @@
-containsTheTrueGraph <- function(trueAdjM, paglist) {
+containsTheTrueGraph <- function(trueAdjM, paglist, verbose=FALSE) {
   is_in_list <- FALSE
   for (adj_matrix in paglist) {
     #make sure that trueAdjM and theadj_matrix have the same sequence of vars
@@ -10,10 +10,12 @@ containsTheTrueGraph <- function(trueAdjM, paglist) {
     }
   }
   if(is_in_list) {
-    print("The List of PAGs includes the true graph")
+    if (verbose)
+      print("The List of PAGs includes the true graph")
     return(TRUE)
   } else {
-    print("The List of PAGs DOESN'T include the true graph")
+    if (verbose)
+      print("The List of PAGs DOESN'T include the true graph")
     return(FALSE)
   }
 }

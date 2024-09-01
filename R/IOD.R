@@ -211,7 +211,7 @@ IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original
 
   # This is counting the number of PAGs before using the violation checks,
   # which takes more time in the computational sense.
-  if (length(unique(unlist(G_PAG_List))) != 0) {
+  if (length(unique(unlist(G_PAG_List, recursive=F))) != 0) {
     #The if excludes list() and list(list(), list(), list()), list(list(list(), list()), list(list(), list())) ...
     G_PAG_List_before <- unique(unlist(G_PAG_List, recursive=F))
     len_before <- length(G_PAG_List_before)
