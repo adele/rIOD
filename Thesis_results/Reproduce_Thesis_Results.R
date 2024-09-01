@@ -14,6 +14,7 @@ library(doFuture)
 library(gtools)
 library(dagitty)
 library(rIOD)
+source("Simulations/SimulationHelper.R")
 ##################################################
 
 library(doFuture)
@@ -429,7 +430,7 @@ lapply(res$Gi_PAG_list, renderAG)
 #renderAG(res$Gi_PAG_list[[1]], width = 300, height = 300, type = "pdf")
 #renderAG(res$Gi_PAG_list[[2]], width = 300, height = 300, type = "pdf")
 
-load("~/IOD/Reproduce_Thesis_results/100randomPAGs.RData")
+load("~/IOD_Rpackage/Thesis_results/100randomPAGs.RData")
 #renderAG(truePAGs[[1]], width = 300, height = 300, type = "pdf")
 
 # Subset the rows where pvalue is greater than or equal to 0.05
@@ -438,7 +439,8 @@ pvals1 <- suffStat[[1]][[1]]$citestResults[suffStat[[1]][[1]]$citestResults$pval
 #"B" "C" "D" "E"
 pvals2 <- suffStat[[1]][[2]]$citestResults[suffStat[[1]][[2]]$citestResults$pvalue >= 0.05, ]
 
-suffStat$cur_labels <- suftat$citestResultsList[[1]]$labels
+suffStat$cur_labels <- suffStat$citestResultsList[[1]]$labels
+source("R/IOD_Helper.R")
 iodCITest(2,3,4, suffStat)
 iodCITest(2,3,{}, suffStat)
 
