@@ -14,7 +14,6 @@ library(doFuture)
 library(gtools)
 library(dagitty)
 library(rIOD)
-source("Simulations/SimulationHelper.R")
 ##################################################
 
 library(doFuture)
@@ -50,6 +49,7 @@ length(listPags)
 #lapply(listPags, renderAG)
 #lapply(listGi, renderAG)
 
+source("tests/testfunctions.R")
 containsTheTrueGraph(trueAdjM, listPags)
 
 #G_i in thesis

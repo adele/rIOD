@@ -1,6 +1,4 @@
 rm(list=ls())
-#source("Simulations/SimulationHelper.R")
-
 ##################################################
 # TO INSTALL THE PACKAGES BELOW
 # install.packages(c("FCI.Utils", "pcalg", "igraph","RBGL","rje",
@@ -18,6 +16,7 @@ library(dagitty)
 library(stringr)
 #install
 library(rIOD)
+source("tests/testfunctions.R")
 
 ##################################################
 

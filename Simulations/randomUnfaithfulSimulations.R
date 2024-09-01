@@ -2,6 +2,8 @@ rm(list=ls())
 source("IOD.R")
 source("IOD_Helper.R")
 source("SimulationHelper.R")
+source("tests/testfunctions.R")
+
 
 ##################################################
 # TO INSTALL THE PACKAGES BELOW
