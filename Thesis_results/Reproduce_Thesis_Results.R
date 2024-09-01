@@ -193,7 +193,7 @@ dev.off()
 #Inverstigate why org and cwo obtain the same lists before when a discriminating path is in the subset and colliders can be identified
 #the first graph is an example, see:
 print(unlist(results$cwo.lenbef)- unlist(results$orig.lenbef))
-load("~/IOD/Reproduce_Thesis_results/100randomPAGs.RData")
+load("~/IOD_Rpackage/Thesis_results/100randomPAGs.RData")
 truePAG <- truePAGs[[1]]
 subset <- subsetsList[[1]]
 setsToConsider <- subset

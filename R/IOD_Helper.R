@@ -55,6 +55,7 @@ iodCITest <- function(x, y, S, suffStat) {
   return(p_value)
 }
 
+
 # Initialize G with edges between all nodes
 initG <-function(suffStat) {
   labelsG <- collectLabelsG(suffStat)
