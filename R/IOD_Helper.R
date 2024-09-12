@@ -1,14 +1,6 @@
-# PS: never transfer/combine data, only statistics
-# Idea:
-#   1) compute p-values for each dataset and save in a citestResults
-#   2) write a iodCITest that combines p-values based on the citestResults of each dataset
-
-#' @param suffStat a list with the following entries:
-#'      cur_labels: these are the names of the variables in the dataset to
-#'                  which the test is being applied.
-#'      citestResultsList: This is a list where each entry is also a list
-#'                         containing both citestResults and the corresponding
-#'                         labels for each dataset.
+#' @importFrom FCI.Utils extractValidCITestResults
+#' @importFrom stats pchisq
+#' @noRd
 iodCITest <- function(x, y, S, suffStat) {
   xname <- suffStat$cur_labels[x]
   yname <- suffStat$cur_labels[y]
@@ -55,8 +47,8 @@ iodCITest <- function(x, y, S, suffStat) {
   return(p_value)
 }
 
-
 # Initialize G with edges between all nodes
+#' @noRd
 initG <-function(suffStat) {
   labelsG <- collectLabelsG(suffStat)
   #print(labelsG)
@@ -68,6 +60,7 @@ initG <-function(suffStat) {
   return(G)
 }
 
+#' @noRd
 collectLabelsG <- function(suffStat) {
   n_datasets <- length(suffStat$citestResultsList)
   lists <- suffStat$citestResultsList
@@ -79,6 +72,7 @@ collectLabelsG <- function(suffStat) {
 }
 
 #adjust G with information from skeleton alg
+#' @noRd
 remEdgesFromG <- function(sepset, G, cur_labels) {
   n_sepset <- length(sepset)
   for (i in 1:n_sepset){
@@ -94,6 +88,8 @@ remEdgesFromG <- function(sepset, G, cur_labels) {
   return(G)
 }
 
+#' @importFrom FCI.Utils getAdjNodes
+#' @noRd
 adjPairsOneOccurrence <- function(G) {
   labelsG <- colnames(G)
   neighbours <- list()
@@ -116,6 +112,8 @@ adjPairsOneOccurrence <- function(G) {
   return(neighbours)
 }
 
+#' @importFrom FCI.Utils getAdjNodes
+#' @noRd
 setOfPossSep <- function(G, p, pdsep.max= Inf, m.max = Inf) {
   labelsG <- colnames(G)
   possSepG <- lapply(seq_len(p), function(.) vector("list", p))
@@ -147,6 +145,7 @@ setOfPossSep <- function(G, p, pdsep.max= Inf, m.max = Inf) {
   return(possSepG)
 }
 
+#' @noRd
 induceSubgraph <- function(G, edges){
   H <- G
   for (edge in edges) {
@@ -156,6 +155,7 @@ induceSubgraph <- function(G, edges){
   return(H)
 }
 
+#' @noRd
 all_combinations <- function(lst) {
   result <- list(list()) # also empty set
   for (i in 1:length(lst)) {
@@ -166,7 +166,7 @@ all_combinations <- function(lst) {
 
 
 #https://rdrr.io/cran/pcalg/src/R/pcalg.R
-#They say minDiscrPath is in pcalg, but I couldnt find it
+#' @noRd
 minDiscrPath <- function(pag, a,b,c, verbose = FALSE){
   ## Purpose: find a minimal discriminating path for a,b,c.
   ## If a path exists this is the output, otherwise NA
@@ -212,6 +212,7 @@ minDiscrPath <- function(pag, a,b,c, verbose = FALSE){
   NA
 } ## {minDiscrPath}
 
+#' @noRd
 updateList <- function(path, set, old.list) {
   ## Purpose: update the list of all paths in the iterative functions
   ## minDiscrPath, minUncovCircPath and minUncovPdPath
@@ -226,6 +227,7 @@ updateList <- function(path, set, old.list) {
 
 #Note: There is no sepset for G, so we create both graphs
 #maybe document what we put in the sepset of G
+#' @noRd
 newRule4 <- function(pag, p, verbose=FALSE) {
   applied <- FALSE
   #orig_pag_objs <- list(pag, sepset)
@@ -318,6 +320,7 @@ newRule4 <- function(pag, p, verbose=FALSE) {
   return(out_pags)
 }
 
+#' @noRd
 computePossImm <- function(PossImm) {
   new_PossImm <- list()
   for(triplet in PossImm){
@@ -333,7 +336,8 @@ computePossImm <- function(PossImm) {
   return(new_PossImm)
 }
 
-
+#' @importFrom pcalg find.unsh.triple
+#' @noRd
 colliderOrientation <- function(amat, G, sepset, verbose=FALSE) {
 
   labels_Gi <- colnames(amat)
@@ -371,7 +375,7 @@ colliderOrientation <- function(amat, G, sepset, verbose=FALSE) {
   return(G)
 }
 
-
+#' @noRd
 getSubsets <- function(nodes) {
   return(powerSet(nodes))
 }
@@ -380,6 +384,10 @@ getSubsets <- function(nodes) {
 # in each dataset using the iodCITest.
 # We can run this only requiring the suffStat of the iodCITest
 # cur_labels does not need to be defined in the input
+#' @noRd
+#' @importFrom pcalg pdsep skeleton
+#' @importFrom future.apply future_lapply
+#' @importFrom FCI.Utils hasViolation
 initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
   G <- initG(suffStat)
   n_datasets <- length(suffStat$citestResultsList)
@@ -495,6 +503,8 @@ initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
 
 # Here we either include colliders with order and non colliders with order or only
 # colliders with order
+#' @noRd
+#' @importFrom FCI.Utils getMAG MAGtoMEC
 tripletsWithOrderOrientation <- function(listGi, G, procedure, verbose=FALSE, sepsetList) {
   nCK1_list = list() # number of colliders with order >= 1
   nNCK_list = list() # number of non-colliders with order >= 0
@@ -590,7 +600,7 @@ tripletsWithOrderOrientation <- function(listGi, G, procedure, verbose=FALSE, se
   return(list(G=G, nCK1=nCK1_list, nNCK=nNCK_list, sepsetList = sepsetList, possImmfromTriplets = possImmfromTriplets))
 }
 
-
+#' @noRd
 updateSepsetList <- function(conflicting_pairs = conflicting_pairs, sepsetList = sepsetList, mec_list = mec_list){
 
   possImmfromTriplets <- list()
@@ -653,6 +663,7 @@ updateSepsetList <- function(conflicting_pairs = conflicting_pairs, sepsetList =
   return(list(sepsetList = sepsetList, possImmfromTriplets = possImmfromTriplets))
 }
 
+#' @noRd
 findConflictingPairs <- function(mec_list, listGi){
   conflicts <-list()
 
@@ -688,7 +699,7 @@ findConflictingPairs <- function(mec_list, listGi){
   return(conflicts)
 }
 
-
+#' @noRd
 getalledges <- function(mec_list){
 
   cur_mec <- list()
@@ -726,6 +737,7 @@ getalledges <- function(mec_list){
 # list_orientations: an empty list or a list with one element: 1, for testing
 # if edge[[2]] can be a definite ancestor of edge[[1]], or 0, for testing
 # if the edge[[2]]  can be a definite non-ancestor oc edge[[1]].
+#' @noRd
 checkForContradictoryOrientations <- function(edge, listGi, list_orientations=list()) {
   i <- length(list_orientations) + 1
 
@@ -748,6 +760,7 @@ checkForContradictoryOrientations <- function(edge, listGi, list_orientations=li
   return(FALSE)
 }
 
+#' @noRd
 orientCwo <- function(vars_collider, G, Gi, listGi){
   #if(!checkForContradictoryOrientations(edge = list(vars_collider[[2]], vars_collider[[1]]), listGi = listGi)) {
   if(G[vars_collider[[1]],  vars_collider[[2]]] != 0) {
@@ -762,6 +775,7 @@ orientCwo <- function(vars_collider, G, Gi, listGi){
   return(G)
 }
 
+#' @noRd
 orientnonColls <- function(vars_noncollider, G, Gi, listGi) {
   # transfer the tails if they exist
   #if(!checkForContradictoryOrientations(edge = list(vars_noncollider[[1]],  vars_noncollider[[2]]), listGi = listGi)) {
@@ -811,6 +825,7 @@ orientnonColls <- function(vars_noncollider, G, Gi, listGi) {
   return(G)
 }
 
+#' @noRd
 getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
   PossImm <- list()
   for (z in colnames(H)) {
@@ -870,6 +885,8 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
   return(PossImm)
 }
 
+#' @importFrom FCI.Utils getAdjNodes
+#' @noRd
 getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat) {
   RemEdges <- list()
   for (pair in existingEdges) {
@@ -914,6 +931,8 @@ getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat) {
   return(RemEdges)
 }
 
+#' @noRd
+#' @importFrom pcalg udag2pag
 applyRulesOnHt <- function(listAllHt){
 
   rules <- rep(TRUE,10)
@@ -952,6 +971,7 @@ applyRulesOnHt <- function(listAllHt){
   return(G_PAG)
 }
 
+#' @noRd
 checkIfInvariancesfromGiAreInPAG <- function(listGi, G_PAG){
   tracker <- c()
   apag <- getAncestralMatrix(G_PAG)
@@ -974,6 +994,9 @@ checkIfInvariancesfromGiAreInPAG <- function(listGi, G_PAG){
   return(all(tracker))
 }
 
+#' @importFrom FCI.Utils getTruePAG getMAG
+#' @importFrom ggm isAG makeMG
+#' @noRd
 hasOnlyValidMAGs <- function(pagAdjM, verbose = FALSE) {
 
   # Checking whether there are cycles or almost cycles
@@ -1025,8 +1048,8 @@ hasOnlyValidMAGs <- function(pagAdjM, verbose = FALSE) {
   }
 }
 
-
-#validatePossPags <- function(G_PAG, G_PAG_List, sepsetList, suffStat, IP){
+#' @importFrom FCI.Utils isMSeparated
+#' @noRd
 validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, method, listGi, verbose=FALSE){
   violates_list <-
     foreach (J = G_PAG, .verbose=verbose) %dofuture% {
@@ -1106,7 +1129,8 @@ validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, method, listGi, ve
   return(unlist(violates_list))
 }
 
-
+#' @importFrom dagitty dseparated
+#' @noRd
 dagittyCIOracle2 <- function(x, y, S, suffStat) {
   g <- suffStat$g
   labels <- suffStat$labels
@@ -1115,4 +1139,38 @@ dagittyCIOracle2 <- function(x, y, S, suffStat) {
   } else {
     return(0)
   }
+}
+
+# returns a matrix in which [i,j]
+#  = 0 implies that i is a definite non-ancestor of j
+#  = 1 implies that i is a definite ancestor of j
+#  = 2 implies that i is a possible ancestor of j
+#' @noRd
+getAncestralMatrix <- function(amat.pag) {
+  defTrueAncM <- getAncestralMatrixHelper(amat.pag, definite = T)
+  possTrueAncM <- getAncestralMatrixHelper(amat.pag, definite = F)
+  return((possTrueAncM - defTrueAncM) + possTrueAncM)
+}
+
+# returns a matrix in which [i,j] = 1 implies that
+# i is a possible/definite ancestor of j
+#' @importFrom pcalg possAn
+#' @noRd
+getAncestralMatrixHelper <- function(amat.pag, definite=TRUE) {
+  ancM <- 0 * amat.pag
+  if (definite) {
+    # Removing every edge with a circle
+    to_rm <- which(amat.pag == 1, arr.ind = T)
+    to_rm2 <- to_rm[,c(2,1)]
+    amat.pag[rbind(to_rm, to_rm2)] <- 0
+  }
+  labels <- colnames(ancM)
+  for (vj in 1:length(labels)) {
+    possAncVj <- pcalg::possAn(amat.pag, x=vj, type="pag", ds=FALSE)
+    possAncVj <- setdiff(possAncVj, vj)
+    if (length(possAncVj) > 0) {
+      ancM[possAncVj, vj] <- 1
+    }
+  }
+  return(ancM)
 }
