@@ -1,5 +1,7 @@
 # This file exists to recreate the results of the thesis and to guide through the files in a compact way.
 
+#Build source package and install package
+
 ##################################################
 #install.packages(c("MXM", "pscl", "DOT", "rsvg"))
 #install.packages("doSNOW")
@@ -40,6 +42,7 @@ suffStat$citestResultsList <- getCIResultsList(citest_type="oracleCI",
                                                setsToConsider=setsToConsider,
                                                true.pag.amat = trueAdjM)
 alpha = 0.05
+#source("R/IOD_Helper.R")
 iod_out <- IOD(suffStat, alpha)
 listPags <- iod_out$G_PAG_List # PAGS
 listGi <- iod_out$Gi_PAG_list
