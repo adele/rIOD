@@ -60,7 +60,7 @@ suffStat$labelList <- labelList
 
 # call IOD.
 alpha <- 0.05
-iod_out <- IOD(suffStat, alpha)
+iod_out <- IOD(labelList, suffStat, alpha)
 
 # show the output.
 iod_out$Gi_PAG_list # list of PAGs generated from each dataset

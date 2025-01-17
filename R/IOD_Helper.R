@@ -47,10 +47,11 @@
 #'   return(p_value)
 #' }
 
-# suffStat$labelList
 # suffStat$all_labels
-# suffStat$citestResultsList
 # suffStat$citestResults
+
+# suffStat$citestResultsList
+
 
 #' @importFrom FCI.Utils extractValidCITestResults
 #' @importFrom stats pchisq
@@ -62,15 +63,31 @@ iodCITest <- function(x, y, S, suffStat) {
 
   if (!is.null(suffStat$citestResults) && !is.null(suffStat$all_labels)) {
     xind <- which(suffStat$all_labels == xname)
-    yind <- which(suffStat$all_labels == xname)
+    yind <- which(suffStat$all_labels == yname)
     Sinds <- which(suffStat$all_labels %in% snames)
 
-    # TODO Adele: return the pvalue from the table
-    pvalue = 1
-  } else if (!is.null(suffStat$citestResultsList)) {
+
+    SxyStr <- getSepString(sort(Sinds))
+    resultsxys <- c()
+    if (!is.null(suffStat$citestResults)) {
+      resultsxys <- subset(suffStat$citestResults, X == xind & Y == yind & S == SxyStr)
+      resultsyxs <- subset(suffStat$citestResults, X == yind & Y == xind & S == SxyStr)
+      resultsxys <- rbind(resultsxys, resultsyxs)
+    }
+
+    if (!is.null(resultsxys) && nrow(resultsxys) > 0) {
+      #   cat("Returning pre-computed p-value for  X=", x, "; Y=", y,
+      #       "given S={", paste0(S, collapse = ","), "}\n")
+
+      # the test is expected to be the symmetric for X,Y|S and Y,X|S
+      p_value <- resultsxys[1, "pvalue"]
+    } else {
+      p_value = 1
+    }
+  } else if (!is.null(suffStat$citestResultsList) && !is.null(suffStat$labelList)) {
     k <- 0
     citestResultsList <- suffStat$citestResultsList
-    n_datasets <- length(suffStat$labelList)
+    n_datasets <- length(suffStat$citestResultsList)
     p <- rep(1, n_datasets)
 
     for (i in 1:n_datasets) {
@@ -105,6 +122,8 @@ iodCITest <- function(x, y, S, suffStat) {
     df <- 2*k
 
     p_value <- pchisq(test_statistic, df, lower.tail = FALSE) # H0: Independency
+  } else {
+    stop("Error: suffStat does not include the expected information.")
   }
 
   return(p_value)
@@ -113,8 +132,8 @@ iodCITest <- function(x, y, S, suffStat) {
 
 # Initialize G with edges between all nodes
 #' @noRd
-initG <-function(suffStat) {
-  labelsG <- collectLabelsG(suffStat)
+initG <-function(labelList) {
+  labelsG <- collectLabelsG(labelList)
   #print(labelsG)
   p <- length(labelsG)
   #print(p)
@@ -125,11 +144,11 @@ initG <-function(suffStat) {
 }
 
 #' @noRd
-collectLabelsG <- function(suffStat) {
-  n_datasets <- length(suffStat$labelList)
+collectLabelsG <- function(labelList) {
+  n_datasets <- length(labelList)
   labelsG <- list()
   for (i in 1:n_datasets){
-    labelsG[[i]] <- suffStat$labelList[[i]]
+    labelsG[[i]] <- labelList[[i]]
   }
   return(unique(unlist(labelsG)))
 }
@@ -451,15 +470,15 @@ getSubsets <- function(nodes) {
 #' @importFrom pcalg pdsep skeleton
 #' @importFrom future.apply future_lapply
 #' @importFrom FCI.Utils hasViolation
-initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
-  G <- initG(suffStat)
-  n_datasets <- length(suffStat$labelList)
+initialSkeleton <- function(labelList, suffStat, alpha, procedure, verbose=FALSE) {
+  G <- initG(labelList)
+  n_datasets <- length(labelList)
   listGi <- list()
   sepsetList <- list()
   #listGiRaw <- list()
 
   skeleton_list <- foreach (i = 1:n_datasets, .verbose=verbose) %dofuture% {
-    cur_labels <- suffStat$labelList[[i]] #citestResultsList[[i]]$labels
+    cur_labels <- labelList[[i]]
     suffStat$cur_labels <- cur_labels
     #skeleton
     skel.fit <- skeleton(suffStat = suffStat,
@@ -506,7 +525,7 @@ initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
   index <- 1
   for (i in 1:length(sepsetList)) {
     sepset <- sepsetList[[i]]
-    cur_labels <- suffStat$labelList[[i]]
+    cur_labels <- labelList[[i]]
     # removing from G the edges removed from Gi after calling pdsep
     G <- remEdgesFromG(sepset, G, cur_labels)
 
@@ -903,7 +922,7 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
             for (i in 1:n_datasets) {
 
               conditionsforAllVi[i] <- FALSE
-              cur_labels <- suffStat$labelList[[i]]
+              cur_labels <- labelList[[i]]
               sepsetGi <- sepsetList[[i]]
               #check if x,y in GI
               # Labels of G are the same as labels of H
@@ -950,7 +969,9 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
 
 #' @importFrom FCI.Utils getAdjNodes
 #' @noRd
-getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat) {
+getRemEdges <- function(existingEdges, G, possSepList, labelList) {
+  n_datasets <- length(labelList)
+
   RemEdges <- list()
   for (pair in existingEdges) {
     X <- pair[1]
@@ -975,7 +996,7 @@ getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat) {
 
     flagRemEdge <- TRUE
     for (i in 1:n_datasets) {
-      cur_labels <- suffStat$labelList[[i]]
+      cur_labels <- labelList[[i]]
 
       #setdiff outputs elements that are in vector1 and not in vector2
       if (length(setdiff(set1, cur_labels)) == 0) {
@@ -1113,7 +1134,7 @@ hasOnlyValidMAGs <- function(pagAdjM, verbose = FALSE) {
 
 #' @importFrom FCI.Utils isMSeparated
 #' @noRd
-validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, method, listGi, verbose=FALSE){
+validatePossPags <- function(G_PAG, sepsetList, labelList, IP, method, listGi, verbose=FALSE){
   violates_list <-
     foreach (J = G_PAG, .verbose=verbose) %dofuture% {
       #for (J in G_PAG) {
@@ -1123,7 +1144,7 @@ validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, method, listGi, ve
         for (n in 1:length(sepsetList)) {
           for (i in 1:length(sepsetList[[n]])) {
             for (j in 1:length(sepsetList[[n]][[i]])) {
-              labels <- suffStat$labelList[[n]]
+              labels <- labelList[[n]]
 
               if(length(sepsetList[[n]][[i]]) >= j){
                 Sij <- sepsetList[[n]][[i]][[j]]

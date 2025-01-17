@@ -44,10 +44,10 @@ citestResultsList_out <- getCIResultsList(citest_type="oracleCI",
 suffStat$citestResultsList <- citestResultsList_out$citestResultsList
 suffStat$labelList <- citestResultsList_out$labelList
 
-
+labelList <- suffStat$labelList
 alpha = 0.05
 #source("R/IOD_Helper.R")
-iod_out <- IOD(suffStat, alpha)
+iod_out <- IOD(labelList, suffStat, alpha)
 listPags <- iod_out$G_PAG_List # PAGS
 listGi <- iod_out$Gi_PAG_list
 iod_out$len_before
@@ -65,7 +65,7 @@ containsTheTrueGraph(trueAdjM, listPags)
 #renderAG(iod_out$Gi_PAG_list[[2]], type="pdf", width=300, height=300)
 
 
-iod_out_cwo <- IOD(suffStat, alpha, procedure = "orderedcolls")
+iod_out_cwo <- IOD(labelList, suffStat, alpha, procedure = "orderedcolls")
 listPags_cwo <- iod_out_cwo$G_PAG_List # PAGS
 listGi_cwo  <- iod_out_cwo$Gi_PAG_list
 iod_out_cwo$len_before
@@ -76,7 +76,7 @@ lapply(listPags_cwo, renderAG)
 containsTheTrueGraph(trueAdjM, listPags_cwo)
 
 
-iod_out_ncwo <- IOD(suffStat, alpha, procedure = "orderedtriples")
+iod_out_ncwo <- IOD(labelList, suffStat, alpha, procedure = "orderedtriples")
 listPags_ncwo <- iod_out_ncwo$G_PAG_List # PAGS
 listGi_ncwo  <- iod_out_ncwo$Gi_PAG_list
 iod_out_ncwo$len_before
@@ -211,6 +211,7 @@ citestResultsList_out<- getCIResultsList(citest_type="oracleCI",
                                          true.pag.amat = truePAG)
 suffStat$citestResultsList <- citestResultsList_out$citestResultsList
 suffStat$labelList <- citestResultsList_out$labelList
+labelList <- suffStat$labelList
 
 ################################################################################################################################
 # 4.2
@@ -432,7 +433,7 @@ table(unlist(res$ncwo.lenbef) - unlist(res$cwo.lenbef))
 #dump(c("suffStat"), "futureWork.R")
 source("Thesis_results/futureWork.R")
 
-res <- IOD(suffStat = suffStat)
+res <- IOD(labelList = labelList, suffStat = suffStat)
 print(suffStat)
 lapply(res$Gi_PAG_list, renderAG)
 #renderAG(res$Gi_PAG_list[[1]], width = 300, height = 300, type = "pdf")

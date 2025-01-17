@@ -5,6 +5,7 @@
 \title{Learning PAGs from multiple datasets with overlapping variables by using the IOD}
 \usage{
 IOD(
+  labelList,
   suffStat,
   alpha = 0.05,
   method = "standard",
@@ -85,16 +86,14 @@ for (cur_dat in data) {
   index <- index + 1
 }
 
-
 # create the suffstat for the meta-analysis approach
 suffStat <- list()
-suffStat$labelList <- labelList
 suffStat$citestResultsList <- citestResultsList
-
+suffStat$labelList <- labelList
 
 # call IOD.
 alpha <- 0.05
-iod_out <- IOD(suffStat, alpha)
+iod_out <- IOD(labelList, suffStat, alpha)
 
 # show the output.
 iod_out$Gi_PAG_list # list of PAGs generated from each dataset

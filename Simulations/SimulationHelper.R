@@ -297,9 +297,10 @@ procedeIODWithGraphs <- function(graphs, subsets, output_folder=NULL, fileid = "
 
     iod_out_Pags <-list()
     iod_out_Gi <- list()
+    labelList <- suffStat$labelList
 
     start.time <- Sys.time()
-    res_orig <- IOD(suffStat)
+    res_orig <- IOD(labelList, suffStat)
     end.time <- Sys.time()
     res_orig$runtime <- end.time - start.time
     res_orig$hasTruePAG <- containsTheTrueGraph(trueAdjM, res_orig$G_PAG_List)
@@ -307,7 +308,7 @@ procedeIODWithGraphs <- function(graphs, subsets, output_folder=NULL, fileid = "
     res_orig$listbefhasTruePAG <- containsTheTrueGraph(trueAdjM, res_orig$G_PAG_List_before)
 
     start.time <- Sys.time()
-    res_cwo <- IOD(suffStat, procedure = "orderedcolls")
+    res_cwo <- IOD(labelList, suffStat, procedure = "orderedcolls")
     end.time <- Sys.time()
     res_cwo$runtime <- end.time - start.time
     res_cwo$hasTruePAG <- containsTheTrueGraph(trueAdjM, res_cwo$G_PAG_List)
@@ -315,7 +316,7 @@ procedeIODWithGraphs <- function(graphs, subsets, output_folder=NULL, fileid = "
     res_cwo$listbefhasTruePAG <- containsTheTrueGraph(trueAdjM, res_cwo$G_PAG_List_before)
 
     start.time <- Sys.time()
-    res_ncwo <- IOD(suffStat, procedure = "orderedtriplets")
+    res_ncwo <- IOD(labelList, suffStat, procedure = "orderedtriplets")
     end.time <- Sys.time()
     res_ncwo$runtime <- end.time - start.time
     res_ncwo$hasTruePAG <- containsTheTrueGraph(trueAdjM, res_ncwo$G_PAG_List)

@@ -65,16 +65,14 @@
 #'   index <- index + 1
 #' }
 #'
-#'
 #' # create the suffstat for the meta-analysis approach
 #' suffStat <- list()
-#' suffStat$labelList <- labelList
 #' suffStat$citestResultsList <- citestResultsList
-#'
+#' suffStat$labelList <- labelList
 #'
 #' # call IOD.
 #' alpha <- 0.05
-#' iod_out <- IOD(suffStat, alpha)
+#' iod_out <- IOD(labelList, suffStat, alpha)
 #'
 #' # show the output.
 #' iod_out$Gi_PAG_list # list of PAGs generated from each dataset
@@ -89,10 +87,10 @@
 #' @importFrom foreach foreach
 #' @importFrom rje powerSet
 #' @export IOD
-IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original", verbose=FALSE) {
+IOD <- function(labelList, suffStat, alpha=0.05, method = "standard", procedure = "original", verbose=FALSE) {
   E = NULL
 
-  initSkeletonOutput <- initialSkeleton(suffStat, alpha, procedure=procedure, verbose=verbose)
+  initSkeletonOutput <- initialSkeleton(labelList, suffStat, alpha, procedure=procedure, verbose=verbose)
   G <- initSkeletonOutput$G
   # renderAG(G)
 
@@ -106,7 +104,7 @@ IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original
   nCK1 <- sum(unlist(initSkeletonOutput$nCK1List), na.rm = TRUE)
   nNCK <- sum(unlist(initSkeletonOutput$nNCKList), na.rm = TRUE)
 
-  n_datasets <- length(suffStat$labelList)
+  n_datasets <- length(labelList)
 
   possImmfromTriplets <- initSkeletonOutput$possImmfromTriplets
 
@@ -122,7 +120,7 @@ IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original
 
   existingEdges <- adjPairsOneOccurrence(G)
 
-  RemEdges <- getRemEdges(existingEdges,G, possSepList,n_datasets,suffStat)
+  RemEdges <- getRemEdges(existingEdges,G, possSepList, labelList)
 
 
   power_RemEdges <- powerSet(unique(RemEdges))
@@ -225,7 +223,7 @@ IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original
   }
 
   if (len_before > 0) {
-    violation_List <- validatePossPags(G_PAG_List_before, sepsetList, suffStat, IP, method, Gi_list)
+    violation_List <- validatePossPags(G_PAG_List_before, sepsetList, labelList, IP, method, Gi_list)
     G_PAG_List <- G_PAG_List_before[!violation_List]
   }
   return(list(G_PAG_List=G_PAG_List, Gi_PAG_list=Gi_list,

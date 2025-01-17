@@ -112,13 +112,63 @@ labelList[[1]] <- obs_vars_1
 citestResultsList[[2]] <- citestResults_2
 labelList[[2]] <-  obs_vars_2
 
+
+######################################################################
+# Test using citestResultsList of separated p-values for each client #
+######################################################################
+
+# Creating a suffStat including citestResultsList and labelList
+
 suffStat <- list()
 suffStat$citestResultsList <- citestResultsList
 suffStat$labelList <- labelList
 
 # call IOD.
 alpha <- 0.05
-iod_out <- IOD(suffStat, alpha)
+iod_out <- IOD(labelList, suffStat, alpha)
+
+# list of PAGs generated using combined p-values in each node
+iod_out$Gi_PAG_list
+lapply(iod_out$Gi_PAG_list, renderAG)
+
+# list of possible merged PAGs
+iod_out$G_PAG_List
+lapply(iod_out$G_PAG_List, renderAG)
+
+#function to check if the true pag is inside the pag list
+containsTheTrueGraph(trueAdjM = true.amat.pag, iod_out$G_PAG_List)
+
+
+##########################################################
+# Test using a citestResults table of combined p-values  #
+##########################################################
+
+# Creating the table combined p-values
+
+fisherMetaTest <- function(pvalues) {
+  test_statistic <- -2 * sum(log(pvalues))
+  df <- 2 * length(pvalues)
+  p <- pchisq(test_statistic, df, lower.tail = FALSE) # H0: Independency
+  return(p)
+}
+
+all_labels <- unique(c(obs_vars_1, obs_vars_2))
+citestResults <- extractValidCITestResults(citestResults_1, obs_vars_1, all_labels)
+citestResults <- rbind(citestResults,
+                       extractValidCITestResults(citestResults_2, obs_vars_2, all_labels))
+
+
+citestResults_merged <- aggregate(citestResults$pvalue, by = (citestResults[, 1:4]), fisherMetaTest)
+colnames(citestResults_merged) <- colnames(citestResults)
+
+# Creating a suffStat including citestResults and all_labels
+
+suffStat <- list()
+suffStat$citestResults <- citestResults_merged
+suffStat$all_labels <- all_labels
+suffStat$verbose <- TRUE
+iod_out <- IOD(labelList, suffStat, alpha)
+
 
 # list of PAGs generated using combined p-values in each node
 iod_out$Gi_PAG_list
