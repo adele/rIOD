@@ -9,7 +9,7 @@
 #'
 #' @param suffStat list of lists each including the nth CI-test results and the labels of the dataset
 #' @param alpha significance level on which the combined statistics in the IOD reject H0 (independence of variables). The default value is 0.05.
-#' @param method the default value is "standard". If "standard" is choosen, it won't have an additional check. If "consistence" is choosen,
+#' @param method the default value is "standard". If "standard" is chosen, it won't have an additional check. If "consistence" is chosen,
 #' an additional validation check is done, which will exclude any PAGs from the list, if they violate marginal consistency. This could be helpful, when dealing with unfaithfulness.
 #' @param procedure there are 3 procedures you can choose from: "original", "orderedcolls" and "orderedtriplets".
 #' "original" performs the regular IOD. "orderedcolls" includes colliders of any order, while "orderedtriplets" considers triplets of any order.
@@ -44,6 +44,7 @@
 #'}
 #' # run the citests separately
 #' citestResultsList <- list()
+#' labelList <- list()
 #' index <- 1
 #' for (cur_dat in data) {
 #'  #this is how to run CI Tests for a dataset cur_dat
@@ -58,15 +59,18 @@
 #'                                        m.max=2, saveFiles = TRUE,
 #'                                        fileid = sprintf("%04d", index),
 #'                                        citestResults_folder="./citests/")
-#'   citestResultsList[[index]] <- list(citestResults=citestResults,
-#'                                      labels=cur_labels)
+#'   citestResulstList[[index]] <- citestResults
+#'   labelList[[index]] <- cur_labels
+#'
 #'   index <- index + 1
 #' }
 #'
 #'
-#' # create the list of the suffstat
+#' # create the suffstat for the meta-analysis approach
 #' suffStat <- list()
-#' suffStat$citestResultsList <- citestResultsList #this is correct
+#' suffStat$labelList <- labelList
+#' suffStat$citestResultsList <- citestResultsList
+#'
 #'
 #' # call IOD.
 #' alpha <- 0.05
@@ -102,7 +106,7 @@ IOD <- function(suffStat, alpha=0.05, method = "standard", procedure = "original
   nCK1 <- sum(unlist(initSkeletonOutput$nCK1List), na.rm = TRUE)
   nNCK <- sum(unlist(initSkeletonOutput$nNCKList), na.rm = TRUE)
 
-  n_datasets <- length(suffStat$citestResultsList)
+  n_datasets <- length(suffStat$labelList)
 
   possImmfromTriplets <- initSkeletonOutput$possImmfromTriplets
 

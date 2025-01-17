@@ -30,6 +30,7 @@ for (i in 1:3) {
 
 # run the citests separately
 citestResultsList <- list()
+labelList <- list()
 index <- 1
 for (cur_dat in data) {
   #this is how to run CI Tests for a dataset cur_dat
@@ -43,7 +44,8 @@ for (cur_dat in data) {
                                        m.max=2, saveFiles = TRUE,
                                        fileid = sprintf("%04d", index),
                                        citestResults_folder="./citests/")
-  citestResultsList[[index]] <- list(citestResults=citestResults, labels=cur_labels)
+  citestResultsList[[index]] <- citestResults
+  labelList[[index]] <- cur_labels
   index <- index + 1
 }
 
@@ -53,7 +55,8 @@ for (cur_dat in data) {
 # Part of the server
 # create the list of the suffstat
 suffStat <- list()
-suffStat$citestResultsList <- citestResultsList #this is correct
+suffStat$citestResultsList <- citestResultsList
+suffStat$labelList <- labelList
 
 # call IOD.
 alpha <- 0.05

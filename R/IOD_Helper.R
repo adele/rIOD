@@ -1,3 +1,57 @@
+#' #' @importFrom FCI.Utils extractValidCITestResults
+#' #' @importFrom stats pchisq
+#' #' @noRd
+#' iodCITestOLD <- function(x, y, S, suffStat) {
+#'   xname <- suffStat$cur_labels[x]
+#'   yname <- suffStat$cur_labels[y]
+#'   snames <- suffStat$cur_labels[S]
+#'
+#'   citestResultsList <- suffStat$citestResultsList
+#'   k <- 0
+#'   n_datasets <- length(citestResultsList)
+#'   p <- rep(1, n_datasets)
+#'
+#'   for (i in 1:n_datasets) {
+#'     labels_i <- citestResultsList[[i]]$labels
+#'     required_labels <- c(xname, yname, snames)
+#'     if (all(required_labels %in% labels_i)) {
+#'
+#'       citestResults_i <- citestResultsList[[i]]$citestResults
+#'       required_results <- extractValidCITestResults(citestResults_i,
+#'                                                     labels_i, required_labels)
+#'       colnames(required_results) <- c("ord", "X", "Y", "S", "pvalue")
+#'       required_results[, c(1:3,5)] <- lapply(required_results[, c(1:3,5)], as.numeric)
+#'
+#'       x <- which(required_labels == xname) # should be always 1
+#'       y <- which(required_labels == yname) # should be always 2
+#'       S <- which(required_labels %in% snames) # should be always 3:length(required_labels)
+#'       sStr <- getSepString(S)
+#'       resultsxys <- c()
+#'       if (!is.null(required_results)) {
+#'         # the test should be the symmetric for X,Y|S and Y,X|S
+#'         resultsxys <- subset(required_results, X == x & Y == y & S == sStr)
+#'         resultsyxs <- subset(required_results, X == y & Y == x & S == sStr)
+#'         resultsxys <- rbind(resultsxys, resultsyxs)
+#'       }
+#'       p[i] <- resultsxys[1, "pvalue"]
+#'       k <- k+1
+#'     } else {
+#'       p[i] <- 1
+#'     }
+#'   }
+#'   test_statistic <- -2 * sum(log(p))
+#'   df <- 2*k
+#'
+#'   p_value <- pchisq(test_statistic, df, lower.tail = FALSE) # H0: Independency
+#'
+#'   return(p_value)
+#' }
+
+# suffStat$labelList
+# suffStat$all_labels
+# suffStat$citestResultsList
+# suffStat$citestResults
+
 #' @importFrom FCI.Utils extractValidCITestResults
 #' @importFrom stats pchisq
 #' @noRd
@@ -6,46 +60,56 @@ iodCITest <- function(x, y, S, suffStat) {
   yname <- suffStat$cur_labels[y]
   snames <- suffStat$cur_labels[S]
 
-  citestResultsList <- suffStat$citestResultsList
-  k <- 0
-  n_datasets <- length(citestResultsList)
-  p <- rep(1, n_datasets)
+  if (!is.null(suffStat$citestResults) && !is.null(suffStat$all_labels)) {
+    xind <- which(suffStat$all_labels == xname)
+    yind <- which(suffStat$all_labels == xname)
+    Sinds <- which(suffStat$all_labels %in% snames)
 
-  for (i in 1:n_datasets) {
-    labels_i <- citestResultsList[[i]]$labels
-    required_labels <- c(xname, yname, snames)
-    if (all(required_labels %in% labels_i)) {
+    # TODO Adele: return the pvalue from the table
+    pvalue = 1
+  } else if (!is.null(suffStat$citestResultsList)) {
+    k <- 0
+    citestResultsList <- suffStat$citestResultsList
+    n_datasets <- length(suffStat$labelList)
+    p <- rep(1, n_datasets)
 
-      citestResults_i <- citestResultsList[[i]]$citestResults
-      required_results <- extractValidCITestResults(citestResults_i,
-                                                    labels_i, required_labels)
-      colnames(required_results) <- c("ord", "X", "Y", "S", "pvalue")
-      required_results[, c(1:3,5)] <- lapply(required_results[, c(1:3,5)], as.numeric)
+    for (i in 1:n_datasets) {
+      labels_i <- suffStat$labelList[[i]]
+      required_labels <- c(xname, yname, snames)
+      if (all(required_labels %in% labels_i)) {
 
-      x <- which(required_labels == xname) # should be always 1
-      y <- which(required_labels == yname) # should be always 2
-      S <- which(required_labels %in% snames) # should be always 3:length(required_labels)
-      sStr <- getSepString(S)
-      resultsxys <- c()
-      if (!is.null(required_results)) {
-        # the test should be the symmetric for X,Y|S and Y,X|S
-        resultsxys <- subset(required_results, X == x & Y == y & S == sStr)
-        resultsyxs <- subset(required_results, X == y & Y == x & S == sStr)
-        resultsxys <- rbind(resultsxys, resultsyxs)
+        citestResults_i <- citestResultsList[[i]]
+        required_results <- extractValidCITestResults(citestResults_i,
+                                                      labels_i, required_labels)
+        colnames(required_results) <- c("ord", "X", "Y", "S", "pvalue")
+        required_results[, c(1:3,5)] <- lapply(required_results[, c(1:3,5)], as.numeric)
+
+        x <- which(required_labels == xname) # should be always 1
+        y <- which(required_labels == yname) # should be always 2
+        S <- which(required_labels %in% snames) # should be always 3:length(required_labels)
+        sStr <- getSepString(S)
+        resultsxys <- c()
+        if (!is.null(required_results)) {
+          # the test should be the symmetric for X,Y|S and Y,X|S
+          resultsxys <- subset(required_results, X == x & Y == y & S == sStr)
+          resultsyxs <- subset(required_results, X == y & Y == x & S == sStr)
+          resultsxys <- rbind(resultsxys, resultsyxs)
+        }
+        p[i] <- resultsxys[1, "pvalue"]
+        k <- k+1
+      } else {
+        p[i] <- 1
       }
-      p[i] <- resultsxys[1, "pvalue"]
-      k <- k+1
-    } else {
-      p[i] <- 1
     }
-  }
-  test_statistic <- -2 * sum(log(p))
-  df <- 2*k
+    test_statistic <- -2 * sum(log(p))
+    df <- 2*k
 
-  p_value <- pchisq(test_statistic, df, lower.tail = FALSE) # H0: Independency
+    p_value <- pchisq(test_statistic, df, lower.tail = FALSE) # H0: Independency
+  }
 
   return(p_value)
 }
+
 
 # Initialize G with edges between all nodes
 #' @noRd
@@ -62,11 +126,10 @@ initG <-function(suffStat) {
 
 #' @noRd
 collectLabelsG <- function(suffStat) {
-  n_datasets <- length(suffStat$citestResultsList)
-  lists <- suffStat$citestResultsList
+  n_datasets <- length(suffStat$labelList)
   labelsG <- list()
   for (i in 1:n_datasets){
-    labelsG[[i]] <- lists[[i]]$labels
+    labelsG[[i]] <- suffStat$labelList[[i]]
   }
   return(unique(unlist(labelsG)))
 }
@@ -390,13 +453,13 @@ getSubsets <- function(nodes) {
 #' @importFrom FCI.Utils hasViolation
 initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
   G <- initG(suffStat)
-  n_datasets <- length(suffStat$citestResultsList)
+  n_datasets <- length(suffStat$labelList)
   listGi <- list()
   sepsetList <- list()
   #listGiRaw <- list()
 
   skeleton_list <- foreach (i = 1:n_datasets, .verbose=verbose) %dofuture% {
-    cur_labels <- suffStat$citestResultsList[[i]]$labels
+    cur_labels <- suffStat$labelList[[i]] #citestResultsList[[i]]$labels
     suffStat$cur_labels <- cur_labels
     #skeleton
     skel.fit <- skeleton(suffStat = suffStat,
@@ -443,7 +506,7 @@ initialSkeleton <- function(suffStat, alpha, procedure, verbose=FALSE) {
   index <- 1
   for (i in 1:length(sepsetList)) {
     sepset <- sepsetList[[i]]
-    cur_labels <- suffStat$citestResultsList[[i]]$labels
+    cur_labels <- suffStat$labelList[[i]]
     # removing from G the edges removed from Gi after calling pdsep
     G <- remEdgesFromG(sepset, G, cur_labels)
 
@@ -840,7 +903,7 @@ getPossImm <- function(H, n_datasets,suffStat,sepsetList, labelsG){
             for (i in 1:n_datasets) {
 
               conditionsforAllVi[i] <- FALSE
-              cur_labels <- suffStat$citestResultsList[[i]]$labels
+              cur_labels <- suffStat$labelList[[i]]
               sepsetGi <- sepsetList[[i]]
               #check if x,y in GI
               # Labels of G are the same as labels of H
@@ -912,7 +975,7 @@ getRemEdges <- function(existingEdges,G, possSepList,n_datasets,suffStat) {
 
     flagRemEdge <- TRUE
     for (i in 1:n_datasets) {
-      cur_labels <- suffStat$citestResultsList[[i]]$labels
+      cur_labels <- suffStat$labelList[[i]]
 
       #setdiff outputs elements that are in vector1 and not in vector2
       if (length(setdiff(set1, cur_labels)) == 0) {
@@ -1060,7 +1123,7 @@ validatePossPags <- function(G_PAG, sepsetList, suffStat, IP, method, listGi, ve
         for (n in 1:length(sepsetList)) {
           for (i in 1:length(sepsetList[[n]])) {
             for (j in 1:length(sepsetList[[n]][[i]])) {
-              labels <- suffStat$citestResultsList[[n]]$labels
+              labels <- suffStat$labelList[[n]]
 
               if(length(sepsetList[[n]][[i]]) >= j){
                 Sij <- sepsetList[[n]][[i]][[j]]

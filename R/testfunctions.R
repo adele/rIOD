@@ -1,3 +1,4 @@
+#' @export containsTheTrueGraph
 containsTheTrueGraph <- function(trueAdjM, paglist, verbose=FALSE) {
   is_in_list <- FALSE
   for (adj_matrix in paglist) {
