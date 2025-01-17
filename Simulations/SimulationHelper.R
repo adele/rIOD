@@ -17,6 +17,7 @@ getCIResultsList <- function(citest_type = "mixedCI",
                              data=NULL, setsToConsider=NULL,
                              true.pag.amat=NULL) {
   citestResultsList <- list()
+  labelList <- list()
   covs_names <- c() # leave it empty for now
 
   #TODO check if oracleCI and true.pag.amat != NULL or
@@ -48,7 +49,8 @@ getCIResultsList <- function(citest_type = "mixedCI",
       cur_labels <- colnames(cur_dat)
       suffStat$cur_labels <- cur_labels
       citestResults <- extractValidCITestResults(allCITests, all_obs_vars, cur_labels)
-      citestResultsList[[i]] <- list(citestResults=citestResults, labels=cur_labels)
+      citestResultsList[[i]] <- citestResults
+      labelList[[i]] <- cur_labels
     }
   } else {
     for (i in 1:length(data)) {
@@ -66,12 +68,13 @@ getCIResultsList <- function(citest_type = "mixedCI",
       }
       suffStat$cur_labels <- cur_labels
       citestResults <- getAllCITestResults(cur_dat, indepTest, suffStat)
-      citestResultsList[[i]] <- list(citestResults=citestResults, labels=cur_labels)
+      citestResultsList[[i]] <- citestResults
+      labelList[[i]] <- cur_labels
       #alpha <- 0.05
       #subset(citestResultsList[[i]]$citestResults, pvalue > alpha)
     }
   }
-  return(citestResultsList)
+  return(list(citestResultsList=citestResultsList, labelList=labelList))
 }
 
 getRandomMAG <- function(n_nodes, dir_edges_prob = 0.4, bidir_edges_prob = 0.2) {
@@ -197,8 +200,10 @@ generateDatasetsSuffStats <- function(truePAGs, subsetsList, Nvec, data_type="co
     #lapply(cur_datasets, head)
 
     suffStat <- list()
-    suffStat$citestResultsList <- getCIResultsList(citest_type="mixedCI",
+    citestResultsList_out <- getCIResultsList(citest_type="mixedCI",
                                                    data=cur_datasets)
+    suffStat$citestResultsList <- citestResultsList_out$citestResultsList
+    suffStat$labelList <- citestResultsList_out$labelList
 
     cur_unfaithf_scs <- list()
 
@@ -281,9 +286,11 @@ procedeIODWithGraphs <- function(graphs, subsets, output_folder=NULL, fileid = "
 
     if (is.null(suffStats)) {
       suffStat <- list()
-      suffStat$citestResultsList <-  getCIResultsList(citest_type="oracleCI",
+      citestResultsList_out <-  getCIResultsList(citest_type="oracleCI",
                                                       setsToConsider = setsToConsider,
                                                       true.pag.amat = trueAdjM)
+      suffStat$citestResultsList <- citestResultsList_out$citestResultsList
+      suffStat$labelList <- citestResultsList_out$labelList
     } else {
       suffStat <- suffStats[[i]]
     }

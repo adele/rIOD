@@ -17,7 +17,7 @@ IOD(
 
 \item{alpha}{significance level on which the combined statistics in the IOD reject H0 (independence of variables). The default value is 0.05.}
 
-\item{method}{the default value is "standard". If "standard" is choosen, it won't have an additional check. If "consistence" is choosen,
+\item{method}{the default value is "standard". If "standard" is chosen, it won't have an additional check. If "consistence" is chosen,
 an additional validation check is done, which will exclude any PAGs from the list, if they violate marginal consistency. This could be helpful, when dealing with unfaithfulness.}
 
 \item{procedure}{there are 3 procedures you can choose from: "original", "orderedcolls" and "orderedtriplets".
@@ -64,6 +64,7 @@ for (i in 1:3) {
 }
 # run the citests separately
 citestResultsList <- list()
+labelList <- list()
 index <- 1
 for (cur_dat in data) {
  #this is how to run CI Tests for a dataset cur_dat
@@ -78,15 +79,18 @@ for (cur_dat in data) {
                                        m.max=2, saveFiles = TRUE,
                                        fileid = sprintf("\%04d", index),
                                        citestResults_folder="./citests/")
-  citestResultsList[[index]] <- list(citestResults=citestResults,
-                                     labels=cur_labels)
+  citestResulstList[[index]] <- citestResults
+  labelList[[index]] <- cur_labels
+
   index <- index + 1
 }
 
 
-# create the list of the suffstat
+# create the suffstat for the meta-analysis approach
 suffStat <- list()
-suffStat$citestResultsList <- citestResultsList #this is correct
+suffStat$labelList <- labelList
+suffStat$citestResultsList <- citestResultsList
+
 
 # call IOD.
 alpha <- 0.05

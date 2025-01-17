@@ -38,9 +38,13 @@ labels <- colnames(trueAdjM)
 setsToConsider <- list(list("A", "B", "C", "E"), list("B", "C", "D", "E"))
 suffStat<- list()
 suffStat$labels <- labels
-suffStat$citestResultsList <- getCIResultsList(citest_type="oracleCI",
-                                               setsToConsider=setsToConsider,
-                                               true.pag.amat = trueAdjM)
+citestResultsList_out <- getCIResultsList(citest_type="oracleCI",
+                                           setsToConsider=setsToConsider,
+                                           true.pag.amat = trueAdjM)
+suffStat$citestResultsList <- citestResultsList_out$citestResultsList
+suffStat$labelList <- citestResultsList_out$labelList
+
+
 alpha = 0.05
 #source("R/IOD_Helper.R")
 iod_out <- IOD(suffStat, alpha)
@@ -202,10 +206,11 @@ truePAG <- truePAGs[[1]]
 subset <- subsetsList[[1]]
 setsToConsider <- subset
 suffStat<- list()
-suffStat$citestResultsList <- getCIResultsList(citest_type="oracleCI",
-                                               setsToConsider=setsToConsider,
-                                               true.pag.amat = truePAG)
-
+citestResultsList_out<- getCIResultsList(citest_type="oracleCI",
+                                         setsToConsider=setsToConsider,
+                                         true.pag.amat = truePAG)
+suffStat$citestResultsList <- citestResultsList_out$citestResultsList
+suffStat$labelList <- citestResultsList_out$labelList
 
 ################################################################################################################################
 # 4.2
@@ -442,14 +447,18 @@ pvals1 <- suffStat[[1]][[1]]$citestResults[suffStat[[1]][[1]]$citestResults$pval
 #"B" "C" "D" "E"
 pvals2 <- suffStat[[1]][[2]]$citestResults[suffStat[[1]][[2]]$citestResults$pvalue >= 0.05, ]
 
-suffStat$cur_labels <- suffStat$citestResultsList[[1]]$labels
+#suffStat$cur_labels <- suffStat$citestResultsList[[1]]$labels
+suffStat$cur_labels <- ssuffStat$labelList[[1]]
+
 source("R/IOD_Helper.R")
 iodCITest(2,3,4, suffStat)
 iodCITest(2,3,{}, suffStat)
 
 #oracle testresults to compare
 suffStat<- list()
-suffStat$citestResultsList <- getCIResultsList(citest_type="oracleCI",
-                                               setsToConsider=list(list("A","D","C","E"),list("B","C","D","E")),
-                                               true.pag.amat = truePAGs[[1]])
+citestResultsList_out <- getCIResultsList(citest_type="oracleCI",
+                                           setsToConsider=list(list("A","D","C","E"),list("B","C","D","E")),
+                                           true.pag.amat = truePAGs[[1]])
+suffStat$citestResultsList <- citestResultsList_out$citestResultsList
+suffStat$labelList <- citestResultsList_out$labelList
 
