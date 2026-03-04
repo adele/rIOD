@@ -8,14 +8,6 @@ The IOD learns equivalence classes of acyclic models
 with latent and selection variables from multiple datasets with overlapping variables. 
 It outputs a list of PAGs including the true PAG, if the combined statistics are faithful. 
 
-### Reference Manual
-
-Documentation of the methods provided by ... can be found at: ...
-
-### Example
-
-An example is provided at ...
-
 ### Installation
 
 First, install R (>= 3.5.0) and the following packages:
@@ -41,3 +33,4 @@ All releases are available at <https://github.com/adele/rIOD/releases/>. If you 
 ``` r
 install.packages("https://github.com/adele/rIOD/releases/download/v1.0/rIOD_1.0.tar.gz", repos=NULL, method="libcurl", dependencies=TRUE)
 ```
+
